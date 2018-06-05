@@ -94,13 +94,14 @@ But if you want to just send turtlebot to an specify point use
 All programs explanation 
 ------------
 
->>>Marker Finder Saver
+- Marker Finder Saver
+
 marker_finder_saver.cpp will find markers and save it id and position, it needs camera parameters, markers size and a ros rgb topic.
 To save all markers for use after, use the program "keyboard_input" and type s.
 
 by default it will use "camera/rgb/image_raw", if you want to use an equivalente topic just type when launch the program as "./motion_estimator camera/rgb/image_color
 
-###Autonomous Robot
+- Autonomous Robot
 autonomous_robot.cpp will wait for an id marker or a goal to move autonomous and avoiding obstacles, to send the goal use 
 "goal.cpp" and to send to a marker use "keyboard.cpp"
 
