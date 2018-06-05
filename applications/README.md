@@ -1,0 +1,138 @@
+Mapping and Navigation
+------------
+
+
+Mapping and navigation can't be done at the same time, first we'll see how to create a map.
+
+Mapping 
+------------
+Start ros.
+
+```bash
+roscore 
+```
+
+Bring on the turtlebot.
+
+```bash
+roslaunch turtlebot_bringup minimal.launch
+```
+To move turtlebot.
+
+```bash
+roslaunch turtlebot_teleop keyboard_teleop.launch
+```
+
+begin mapping,this launch also launchs kinect.
+
+```bash
+roslaunch turtlebot_navigation gmapping_demo.launch
+```
+
+For vizualize your map when mapping open rviz
+
+```bash
+roslaunch turtlebot_rviz_launchers view_navigation.launch
+```
+
+This will be in /catkin_ws/devel/lib/autonomous_robot, this will look for all markers id and poses(optional).
+
+```bash
+./catkin_ws/devel/lib/autonomous_robot/marker_finder_saver
+```
+For save all markers id and poses 
+
+```bash
+./catkin_ws/devel/lib/autonomous_robot/keyboard_input
+s
+```
+
+for save the map when the map is finished, /tmp/my_map will erase everything when rebooting.
+
+```bash
+rosrun map_server map_saver -f /tmp/my_map
+```
+
+Navigation 
+------------
+Now that we have our map, let's see how to make turtlebot autonomous navigate..
+Close all process before(but roscore)/
+
+Open your saved map with amcl.demo.
+
+```bash
+roslaunch turtlebot_navigation amcl_demo.launch map_file:=/tmp/my_map.yaml
+```
+
+Vizualize your map and turtlebot, with rviz, in this step you need to specify where turtlebot is in your map 
+and where is he "looking for", for this in rviz you need to use the tool "2d pose estimation".
+
+```bash
+roslaunch turtlebot_rviz_launchers view_navigation.launch
+```
+
+We'll need this for send where we want the turtlebot to go, you can load all markers saved before.
+
+```bash
+./catkin_ws/devel/lib/autonomous_robot/autonomous_robot
+```
+
+Now, if you want to send turtlebot to an marker
+
+```bash
+./catkin_ws/devel/lib/autonomous_robot/keyborad_input
+"valid id"
+```
+
+But if you want to just send turtlebot to an specify point use
+
+```bash
+./catkin_ws/devel/lib/autonomous_robot/goal
+"x" "y"
+```
+
+All programs explanation 
+------------
+
+- Marker Finder Saver
+
+marker_finder_saver.cpp will find markers and save it id and position, it needs camera parameters, markers size and a ros rgb topic.
+To save all markers for use after, use the program "keyboard_input" and type s.
+
+by default it will use "camera/rgb/image_raw", if you want to use an equivalente topic just type when launch the program as "./motion_estimator camera/rgb/image_color
+
+- Autonomous Robot
+
+autonomous_robot.cpp will wait for an id marker or a goal to move autonomous and avoiding obstacles, to send the goal use 
+"goal.cpp" and to send to a marker use "keyboard.cpp"
+
+Autonomous Robot needs two ros topics to work rgb and depth topic, by default it will use "camera/rgb/image_raw" and "camera/depth/image_raw",
+if you want to use an equivalente topic just type when launch the program as "./Autonomous Robot camera/rgb/image_color camera/depth/image.
+
+- Motion estimator ros
+
+motion_estimator.cpp will track points and show how the tracked point moved in space.
+
+Motion estimator needs two ros topics to work rgb and depth topic, by default it will use "camera/rgb/image_raw" and "camera/depth/image_raw",
+if you want to use an equivalente topic just type when launch the program as "./motion_estimator camera/rgb/image_color camera/depth/image.
+
+- Bag Loader
+
+bag_loader.cpp will load and show in window a rgb and a depth topic
+
+bag_loader needs two ros topics to work rgb and depth topic, by default it will use "camera/rgb/image_raw" and "camera/depth/image_raw",
+if you want to use an equivalente topic just type when launch the program as "./bag_loader camera/rgb/image_color camera/depth/image.
+
+- Goal
+
+goal.cpp will send a goal to turtlebot moves to a x,y position
+
+- Keyboard Input
+
+Keyboard_input.cpp save all markers id and positions that were saw in any frame when mapping, and in localization sends a goal to move to a marker id.
+
+- Listening keyboard
+
+listening_Keyboard.cpp listen to a string
+
+
