@@ -28,7 +28,7 @@ It is recommended to install both dependencies from source. The following two li
 Building
 ------------
 
-- Create a new path in src and copy everything to this path.
+- Create a new path in "~catkin_ws/src" and copy everything to this path.
 - In path "CMAKE" change file "Findaruco.cmake" to your file Findaruco.cmake, this file can be found in your building Aruco path
 - In path catkin_ws 
 
