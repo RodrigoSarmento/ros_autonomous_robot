@@ -23,7 +23,7 @@ It is recommended to install both dependencies from source. The following two li
 
 >[Install ROS on Linux](http://wiki.ros.org/kinetic/Installation)
 
->[Create a catkin workspace] >> (http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
+>[Create a catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
 
 Building
 ------------
@@ -46,10 +46,6 @@ Authors
 ------------
 
 Natalnet Laboratory for Perceptual Robotics, Federal University of Rio Grande do Norte, Brazil.
-
-Contact: rodrigosarmento rodrigosarmentox@gmail.com
-Contact: bruno.silva AT ect.ufrn.br
-
 
 Contact: rodrigosarmento rodrigosarmentox@gmail.com
 Contact: bruno.silva AT ect.ufrn.br
