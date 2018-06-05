@@ -25,15 +25,11 @@ It is recommended to install both dependencies from source. The following two li
 
 Building
 ------------
->>>Create a catkin workspace >> http://wiki.ros.org/catkin/Tutorials/create_a_workspace.
-
->>>Create a new path in src and copy everything to this path.
-
->>>In path "CMAKE" change file "Findaruco.cmake" to your file Findaruco.cmake, this file can be found in your building Aruco path
-
->>>In path catkin_ws use in terminal "catkin_make" and it is done.
-
->>>The explanation of all applications and how to use is in "application" path.
+-Create a catkin workspace >> http://wiki.ros.org/catkin/Tutorials/create_a_workspace.
+-Create a new path in src and copy everything to this path.
+-In path "CMAKE" change file "Findaruco.cmake" to your file Findaruco.cmake, this file can be found in your building Aruco path
+-In path catkin_ws use in terminal "catkin_make" and it is done.
+-The explanation of all applications and how to use is in "application" path.
 
 License
 ------------
@@ -45,6 +41,10 @@ Authors
 ------------
 
 Natalnet Laboratory for Perceptual Robotics, Federal University of Rio Grande do Norte, Brazil.
+
+Contact: rodrigosarmento rodrigosarmentox@gmail.com
+Contact: bruno.silva AT ect.ufrn.br
+
 
 Contact: rodrigosarmento rodrigosarmentox@gmail.com
 Contact: bruno.silva AT ect.ufrn.br
