@@ -7,39 +7,48 @@ Mapping and navigation can't be done at the same time, first we'll see how to cr
 Mapping 
 ------------
 Start ros.
+
 ```bash
 roscore 
 ```
+
 Bring on the turtlebot.
+
 ```bash
 roslaunch turtlebot_bringup minimal.launch
 ```
 To move turtlebot.
+
 ```bash
 roslaunch turtlebot_teleop keyboard_teleop.launch
 ```
 
 begin mapping,this launch also launchs kinect.
+
 ```bash
 roslaunch turtlebot_navigation gmapping_demo.launch
 ```
 
 For vizualize your map when mapping open rviz
+
 ```bash
 roslaunch turtlebot_rviz_launchers view_navigation.launch
 ```
 
 This will be in /catkin_ws/devel/lib/autonomous_robot, this will look for all markers id and poses(optional).
+
 ```bash
 ./catkin_ws/devel/lib/autonomous_robot/marker_finder_saver
 ```
 For save all markers id and poses 
+
 ```bash
 ./catkin_ws/devel/lib/autonomous_robot/keyboard_input
 s
 ```
 
 for save the map when the map is finished, /tmp/my_map will erase everything when rebooting.
+
 ```bash
 rosrun map_server map_saver -f /tmp/my_map
 ```
@@ -50,6 +59,7 @@ Now that we have our map, let's see how to make turtlebot autonomous navigate..
 Close all process before(but roscore)/
 
 Open your saved map with amcl.demo.
+
 ```bash
 roslaunch turtlebot_navigation amcl_demo.launch map_file:=/tmp/my_map.yaml
 ```
@@ -62,6 +72,7 @@ roslaunch turtlebot_rviz_launchers view_navigation.launch
 ```
 
 We'll need this for send where we want the turtlebot to go, you can load all markers saved before.
+
 ```bash
 ./catkin_ws/devel/lib/autonomous_robot/autonomous_robot
 ```
