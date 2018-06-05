@@ -23,14 +23,15 @@ It is recommended to install both dependencies from source. The following two li
 
 >[Install ROS on Linux](http://wiki.ros.org/kinetic/Installation)
 
+>.[Create a catkin workspace] >> (http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
+
 Building
 ------------
--Create a catkin workspace >> http://wiki.ros.org/catkin/Tutorials/create_a_workspace.
 -Create a new path in src and copy everything to this path.
 -In path "CMAKE" change file "Findaruco.cmake" to your file Findaruco.cmake, this file can be found in your building Aruco path
--In path catkin_ws use in terminal "catkin_make" and it is done.
--The explanation of all applications and how to use is in "application" path.
-
+-In path catkin_ws 
+```bash
+catkin_make```
 License
 ------------
 
