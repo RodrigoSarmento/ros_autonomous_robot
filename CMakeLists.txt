@@ -15,7 +15,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
 
-project(rgbd_rtk)
+project(autonomous_robot)
 
 ##ros
 find_package(catkin REQUIRED COMPONENTS
