@@ -1,22 +1,26 @@
 #include <ros/ros.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
+#include <cstdio>
+#include <cstdlib>
 
-
+using namespace std;
 /** function declarations **/
 bool moveToGoal(double xGoal, double yGoal);
 
-/** declare the coordinates of interest **/
-double x = -0.4;
-double y = 0.50;
-
+double x,y;
 bool goalReached = false;
 
 int main(int argc, char** argv){
+
    ros::init(argc, argv, "map_navigation_node");
    ros::spinOnce();
 
-   moveToGoal(x, y);
+   cout <<  "Insirt x and y positions\n";
+   cin>>x>>y;
+
+   moveToGoal(x, y); //declare the coordinates of interest 
+
    
    return 0;
 }

@@ -37,6 +37,7 @@ message(STATUS "Build directory: " ${PROJECT_BINARY_DIR})
 #opencv
 find_package(VTK 6.2 REQUIRED)
 find_package(OpenCV 3.3.1 )
+find_package(Eigen )
 message(STATUS "OpenCV version: " ${OpenCV_VERSION})
 #pcl
 find_package(PCL 1.8 REQUIRED PATHS "/usr/local/share/pcl-1.8")
@@ -57,8 +58,11 @@ catkin_package(
 )
 
 
-include_directories(${OpenCV_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} common io tracking motion_estimation visualization)
+
+include_directories(${OpenCV_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} common io tracking motion_estimation visualization slam)
 link_directories(${PCL_LIBRARY_DIRS})
+add_subdirectory(slam)
+set(RGBD_RTK_SLAM rgbd_rtk_slam)
 add_subdirectory(io)
 set(RGBD_RTK_IO rgbd_rtk_io)
 add_subdirectory(tracking)

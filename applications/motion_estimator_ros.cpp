@@ -23,121 +23,115 @@
 
 using namespace std;
 
+///rgbd_rtk variables
+KLTTracker tracker;
+Intrinsics intr(0);
+MotionEstimatorRANSAC motion_estimator(intr);
+//others variables
+//ReconstructionVisualizer visualizer;
+Eigen::Affine3f pose = Eigen::Affine3f::Identity();
+Eigen::Affine3f trans = Eigen::Affine3f::Identity();
+pcl::PointCloud<PointT>::Ptr prev_cloud(new pcl::PointCloud<PointT>);
+pcl::PointCloud<PointT>::Ptr curr_cloud(new pcl::PointCloud<PointT>);
+int i=0;
 
-    KLTTracker tracker;
-    Intrinsics intr(0);
-    MotionEstimatorRANSAC motion_estimator(intr);
-    //ReconstructionVisualizer visualizer;
-    Eigen::Affine3f pose = Eigen::Affine3f::Identity();
-    Eigen::Affine3f trans = Eigen::Affine3f::Identity();
-    pcl::PointCloud<PointT>::Ptr prev_cloud(new pcl::PointCloud<PointT>);
-    pcl::PointCloud<PointT>::Ptr curr_cloud(new pcl::PointCloud<PointT>);
-    int i=0;
-
-void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD);
-void rosMotionEstimator(cv::Mat rgb , cv::Mat depth);
-
-
- int main(int argc, char** argv){
-    string rgb_topic,depth_topic;
-    rgb_topic = "camera/rgb/image_raw";
-    depth_topic = "camera/depth/image_raw";
-    if(argc != 1 && argc!= 3){
-        fprintf(stderr, "Usage: %s optional: <rgb_topic> <depth_topic>....bye default : camera/rgb/image_raw and camera/depth/image_raw\n", argv[0]);
-        exit(0);
-    }
-    if(argc == 1){
-        printf(" By defult using camera/rgb/image_raw and camera/depth/image_raw as ros topics\n");  
-    }
-    if(argc == 3){
-        rgb_topic = argv[1];
-        depth_topic = argv[2]; 
-    }
-
-    //ROS
-    ros::init(argc, argv, "image_converter");
-    ros::start();
-    ros::NodeHandle nh;
-
-    message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, rgb_topic, 1);
-    message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, depth_topic, 1);
-    typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy;
-    //ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
-    message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), rgb_sub,depth_sub);
-    sync.registerCallback(boost::bind(&callback, _1, _2));
-
-    ros::spin();
-
-    return 0;
- }
-
- void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD){
-
-    // Copy the ros image message to cv::Mat.
-    cv_bridge::CvImageConstPtr cv_ptrRGB;
-    try{
-        cv_ptrRGB = cv_bridge::toCvShare(msgRGB);
-    }
-    catch (cv_bridge::Exception& e){
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
-    }
-
-    cv_bridge::CvImageConstPtr cv_ptrD;
-    try{
-        cv_ptrD = cv_bridge::toCvShare(msgD);
-    }
-    catch (cv_bridge::Exception& e){
-        ROS_ERROR("cv_bridge exception: %s", e.what());
-        return;
-    }
+void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD); //subscribing rgb and depth image
+void motionEstimator(cv::Mat rgb , cv::Mat depth); //motion estiomator
 
 
-    rosMotionEstimator(cv_ptrRGB->image, cv_ptrD->image);
+int main(int argc, char** argv){
+  
+  string rgb_topic,depth_topic;
+  rgb_topic = "camera/rgb/image_raw";
+  depth_topic = "camera/depth/image_raw";
+  if(argc != 1 && argc!= 3){
+    fprintf(stderr, "Usage: %s optional: <rgb_topic> <depth_topic>....bye default : camera/rgb/image_raw and camera/depth/image_raw\n", argv[0]);
+    exit(0); 
+  }
+  if(argc == 1){
+    printf(" By defult using camera/rgb/image_raw and camera/depth/image_raw as ros topics\n");  
+  }
+  if(argc == 3){
+    rgb_topic = argv[1];
+    depth_topic = argv[2]; 
+  }
+  
+  ros::init(argc, argv, "bag_loader"); //initializing ros
+  ros::start();
+  ros::NodeHandle nh;
+
+  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, rgb_topic, 1); //subscribing to rgb topic
+  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, depth_topic, 1);  //subscribing to depth topic
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy; //defining which topics will be sync
+  message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), rgb_sub,depth_sub); //sync rgb and depth topic in "MySyncPolicy(x)" miliseconds
+  sync.registerCallback(boost::bind(&callback, _1, _2));
+
+  ros::spin();
+
+  return 0;
 }
-void rosMotionEstimator(cv::Mat rgb , cv::Mat depth){
 
-    *curr_cloud = getPointCloud(rgb, depth, intr);
+void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD){
 
-    //track feature points in current frame
-    tracker.track(rgb);
-    cout<<i<<endl;
+  cv_bridge::CvImageConstPtr cv_ptrRGB;
+  try{
+    cv_ptrRGB = cv_bridge::toCvShare(msgRGB);
+  }
+  catch (cv_bridge::Exception& e){
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
 
-    //Estimate motion between the current and the previous frame/point clouds
-      if(i > 0){
-       	trans = motion_estimator.estimate(tracker.prev_pts_, prev_cloud, tracker.curr_pts_, curr_cloud);
-        pose = pose*trans;
-      }
+  cv_bridge::CvImageConstPtr cv_ptrD;
+  try{
+    cv_ptrD = cv_bridge::toCvShare(msgD);
+  }
+  catch (cv_bridge::Exception& e){
+    ROS_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
 
-    //View tracked points
+  motionEstimator(cv_ptrRGB->image, cv_ptrD->image);
+}
+void motionEstimator(cv::Mat rgb , cv::Mat depth){
 
-    for(size_t k=0; k < tracker.curr_pts_.size(); k++){
-        cv::Point2i pt1 = tracker.prev_pts_[k];
-        cv::Point2i pt2 = tracker.curr_pts_[k];
-        cv::circle(rgb, pt1, 1, CV_RGB(255,0,0), -1);
-        cv::circle(rgb, pt2, 3, CV_RGB(0,0,255), -1);
-        cv::line(rgb, pt1, pt2, CV_RGB(0,0,255));
-    }
+  *curr_cloud = getPointCloud(rgb, depth, intr);
+
+  //track feature points in current frame
+  tracker.track(rgb);
+  cout<<i<<endl;
+
+  if(i > 0){     //Estimate motion between the current and the previous frame/point clouds
+    trans = motion_estimator.estimate(tracker.prev_pts_, prev_cloud, tracker.curr_pts_, curr_cloud);
+    pose = pose*trans;
+  }
+
+  for(size_t k=0; k < tracker.curr_pts_.size(); k++){     //View tracked points
+    cv::Point2i pt1 = tracker.prev_pts_[k];
+    cv::Point2i pt2 = tracker.curr_pts_[k];
+    cv::circle(rgb, pt1, 1, CV_RGB(255,0,0), -1);
+    cv::circle(rgb, pt2, 3, CV_RGB(0,0,255), -1);
+    cv::line(rgb, pt1, pt2, CV_RGB(0,0,255));
+  }
     
-    //3D vizualization 
-    /*
-    if(i == 0) visualizer.addReferenceFrame(pose, "origin");
-    visualizer.addQuantizedPointCloud(curr_cloud, 0.3, pose);
-    visualizer.viewReferenceFrame(pose);
-    visualizer.viewPointCloud(curr_cloud, pose);
-    visualizer.viewQuantizedPointCloud(curr_cloud, 0.02, pose);
-    //Spin Once = waitkey for 3D window
-    visualizer.spinOnce();
-    */
+  //3D vizualization 
+  /*
+  if(i == 0) visualizer.addReferenceFrame(pose, "origin");
+  visualizer.addQuantizedPointCloud(curr_cloud, 0.3, pose);
+  visualizer.viewReferenceFrame(pose);
+  visualizer.viewPointCloud(curr_cloud, pose);
+  visualizer.viewQuantizedPointCloud(curr_cloud, 0.02, pose);
+  //Spin Once = waitkey for 3D window
+  visualizer.spinOnce();
+  */
     
-    //Dividing by the scale factor in order to show depth image
-    depth= depth/5;
-    cv::imshow("OPENCV_WINDOW_DEPTH", rgb);
-    cv::imshow("OPENCV_WINDOW", depth);
-    cv::waitKey(1);
-    //Let the prev. cloud in the next frame be the current cloud
-    *prev_cloud = *curr_cloud;
-    i++;
- }
+  depth= depth/5;
+  cv::imshow("OPENCV_WINDOW_RGB", rgb);
+  cv::imshow("OPENCV_WINDOW_DEPTH", depth);
+  cv::waitKey(1);
+  //Let the prev. cloud in the next frame be the current cloud
+  *prev_cloud = *curr_cloud;
+  i++;
+}
 
 

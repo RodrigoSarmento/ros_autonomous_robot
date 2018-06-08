@@ -1,3 +1,4 @@
+
 ///ROS
 #include <cstdio>
 #include <cstdlib>
@@ -20,13 +21,7 @@
 using namespace std;
 using namespace cv;
 
-
-int i=0;
-
-
 void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD);
-void load_bag(cv::Mat rgb , cv::Mat depth);
-
 
 int main(int argc, char** argv){    
 
@@ -46,15 +41,14 @@ int main(int argc, char** argv){
   }
   
 
-  ros::init(argc, argv, "bag_loader");
+  ros::init(argc, argv, "bag_loader"); //initializing ros
   ros::start();
   ros::NodeHandle nh;
 
-  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, rgb_topic, 1);
-  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, depth_topic, 1);
-  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy;
-  //ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
-  message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), rgb_sub,depth_sub);
+  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, rgb_topic, 1); //subscribing to rgb topic
+  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, depth_topic, 1);  //subscribing to depth topic
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy; //defining which topics will be sync
+  message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), rgb_sub,depth_sub); //sync rgb and depth topic in "MySyncPolicy(x)" miliseconds
   sync.registerCallback(boost::bind(&callback, _1, _2));
 
   ros::spin();
@@ -64,7 +58,6 @@ int main(int argc, char** argv){
 
 void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD){
 
-  // Copy the ros image message to cv::Mat.
   cv_bridge::CvImageConstPtr cv_ptrRGB;
   try{
       cv_ptrRGB = cv_bridge::toCvShare(msgRGB);
@@ -82,16 +75,12 @@ void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageC
     ROS_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
-  load_bag(cv_ptrRGB->image, cv_ptrD->image);
-}
-
-void load_bag(cv::Mat rgb , cv::Mat depth){
-
-  cout<< "Interaction " << i << endl;
+  cv::Mat depth = cv_ptrD->image;
+  //showing rgb and depth images
   depth = depth/5;
-  cv::imshow("OPENCV_WINDOW_DEPTH", rgb);
-  cv::imshow("OPENCV_WINDOW", depth);
+  cv::imshow("OPENCV_WINDOW_RGB", cv_ptrRGB->image);
+  cv::imshow("OPENCV_WINDOW_DEPTH", cv_ptrD->image);
   cv::waitKey(1);
-
-  i++;
 }
+
+

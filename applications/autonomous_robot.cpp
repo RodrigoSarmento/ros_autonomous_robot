@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 ///ROS
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -37,72 +38,65 @@ int i=0;
 
 struct markerFound{
   int id;
-  double x_pose;
-  double y_pose;
-  double z_pose;
+  float x_pose;
+  float y_pose;
+  float z_pose;
 };
 
 string listen_id;
 int listen_id_to_int;
 markerFound all_markers[255];
 
-void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD); // listening rgbd sensor 
-void rosMarkerFinder(cv::Mat rgb , cv::Mat depth); //marker finder
+void imageCallback(const sensor_msgs::ImageConstPtr& msg); //subscribe to rgb image
+void markerFinder(cv::Mat rgb); //marker finder
 void listenKeyboardGoal(const std_msgs::String::ConstPtr& msg); //listening keyboard input for navigation
 bool goalReached = false;
 bool moveToGoal(double xGoal, double yGoal); //moving autonomous to a place
+void loadMarkers(string saved_markers); //open all_markers.txt
 
 
 int main(int argc, char** argv){    
   
-  string rgb_topic,depth_topic;
+  string rgb_topic;
   rgb_topic = "camera/rgb/image_raw";
-  depth_topic = "camera/depth/image_raw";
-  if(argc != 5 && argc !=3){
-    fprintf(stderr, "Usage: %s <camera calibration file> <marker size> optional: <rgb_topic> <depth_topic>....bye default : camera/rgb/image_raw and camera/depth/image_raw\n", argv[0]);
+  if(argc != 5 && argc !=4){
+    fprintf(stderr, "Usage: %s <camera calibration file> <marker size> <all_markers.txt> optional: <rgb_topic> ....bye default : camera/rgb/image_raw \n", argv[0]);
     exit(0);
   }
-  if(argc == 3){
-    printf(" By defult using camera/rgb/image_raw and camera/depth/image_raw as ros topics\n");  
+  if(argc == 4){
+    printf(" By defult using camera/rgb/image_raw as ros topic\n");  
   }
    if(argc == 5){
-     rgb_topic = argv[3];
-     depth_topic = argv[4];  
+     rgb_topic = argv[4];
   }
- 
 
-
-  camera_params.readFromXMLFile(argv[1]);
+  camera_params.readFromXMLFile(argv[1]);    //aruco params 
   marker_size = stof(argv[2]);
+  loadMarkers(argv[3]);//loading markers
+
   marker_detector.setDictionary("ARUCO_MIP_36h12", 0);
 
-  //ROS steps
-  for(int k=0; k>=255; k++){
+  for(int k=0; k<=254; k++){ //initializing markers
     all_markers[k].id = 0;
   }
 
-  ros::init(argc, argv, "marker_finder_ros");
+  ros::init(argc, argv, "autonomous_robot");
   ros::start();
 
   ros::NodeHandle n;
-  ros::Subscriber sub = n.subscribe("chatter", 1000, listenKeyboardGoal);
+  ros::Subscriber sub = n.subscribe("chatter", 1000, listenKeyboardGoal); //listning navigation goal
   
   ros::NodeHandle nh;
-  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, rgb_topic, 1);
-  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, depth_topic, 1);
-  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy;
-  //ApproximateTime takes a queue size as its constructor argument, hence MySyncPolicy(10)
-  message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), rgb_sub,depth_sub);
-  sync.registerCallback(boost::bind(&callback, _1, _2));
+  image_transport::ImageTransport it(nh);
+  image_transport::Subscriber rgb_sub = it.subscribe(rgb_topic, 1, imageCallback);    //subscribing to rgb image
 
-  ros::spin();
+  ros::spin();  //"while true"
 
   return 0;
  }
 
-void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD){
-
-  // Copy the ros image message to cv::Mat.
+void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
+  
   cv_bridge::CvImageConstPtr cv_ptrRGB;
   try{
       cv_ptrRGB = cv_bridge::toCvShare(msgRGB);
@@ -112,49 +106,34 @@ void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageC
     return;
   }
 
-  cv_bridge::CvImageConstPtr cv_ptrD;
-  try{
-    cv_ptrD = cv_bridge::toCvShare(msgD);
-  }
-  catch (cv_bridge::Exception& e){
-    ROS_ERROR("cv_bridge exception: %s", e.what());
-    return;
-  }
-  rosMarkerFinder(cv_ptrRGB->image, cv_ptrD->image);
+  markerFinder(cv_ptrRGB->image); //calling marker finder funcition
 }
 
-void rosMarkerFinder(cv::Mat rgb , cv::Mat depth){
+void markerFinder(cv::Mat rgb ){
 
-  //Detect and view Aruco markers
-  marker_detector.detect(rgb, markers, camera_params, marker_size); 
-  
+  marker_detector.detect(rgb, markers, camera_params, marker_size);   //Detect and view Aruco markers
+
   for (size_t j = 0; j < markers.size(); j++){
-    //save all markers in a vetor 
-    all_markers[markers[j].id].id = markers[j].id;
-    markers[j].draw(rgb, Scalar(0,0,255), 1);
-    //use to put names on ids cout<<markers[j].id<<" ";
+    markers[j].draw(rgb, Scalar(0,0,255), 1);   //drawing markers in rgb image
     CvDrawingUtils::draw3dAxis(rgb, markers[j], camera_params);
     stringstream ss;
     ss << "m" << markers[j].id;
   }
-
-  depth = depth/5;
-  cv::imshow("OPENCV_WINDOW", rgb);
-  cv::imshow("OPENCV_WINDOW_DEPTH", depth);
+   
+  cv::imshow("OPENCV_WINDOW", rgb);  //showing rgb image
   cv::waitKey(1);
 
   i++;
 }
 
-
 void listenKeyboardGoal(const std_msgs::String::ConstPtr& msg){
+  
   listen_id = msg->data.c_str();
   string::size_type sz; 
-  //converting string to int
-  listen_id_to_int = stoi(listen_id,&sz);
 
-  //validing a marker(a merker is valid if it was detected in any frame)
-  if(all_markers[listen_id_to_int].id != 0){
+  listen_id_to_int = stoi(listen_id,&sz);  //converting string to int
+
+  if(all_markers[listen_id_to_int].id != 0){   //validing a marker(a marker is valid if it was detected in any frame)
     ROS_INFO("[%s] is a valid marker", msg->data.c_str());
     moveToGoal(all_markers[listen_id_to_int].x_pose, all_markers[listen_id_to_int].y_pose);
   }
@@ -162,20 +141,19 @@ void listenKeyboardGoal(const std_msgs::String::ConstPtr& msg){
   else 
     ROS_INFO("[%s] is not a valid marker", msg->data.c_str());
 }
+
 bool moveToGoal(double xGoal, double yGoal){
 
-   //define a client for to send goal requests to the move_base server through a SimpleActionClient
-   actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
+   actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);    //define a client for to send goal requests to the move_base server through a SimpleActionClient
 
-   //wait for the action server to come up
-   while(!ac.waitForServer(ros::Duration(5.0))){
+
+   while(!ac.waitForServer(ros::Duration(5.0))){    //wait for the action server to come up
       ROS_INFO("Waiting for the move_base action server to come up");
    }
 
    move_base_msgs::MoveBaseGoal goal;
 
-   //set up the frame parameters
-   goal.target_pose.header.frame_id = "map";
+   goal.target_pose.header.frame_id = "map";     //set up the frame parameters
    goal.target_pose.header.stamp = ros::Time::now();
 
    /* moving towards the goal*/
@@ -201,5 +179,20 @@ bool moveToGoal(double xGoal, double yGoal){
       ROS_INFO("The robot failed to reach the destination");
       return false;
    }
+}
 
+void loadMarkers(string saved_markers){
+  int markers_number = 0, id = 0;
+  float x = 0, y = 0;
+  fstream arq;
+  arq.open(saved_markers);//open .txt
+  arq >> markers_number;
+
+  //saving markers information in vector "all_markers"
+  for(int i = 0; i <= markers_number; i++){
+    arq >> id >> x >> y;
+    all_markers[id].id = id;
+    all_markers[id].x_pose = x;
+    all_markers[id].y_pose = y;
+  }
 }

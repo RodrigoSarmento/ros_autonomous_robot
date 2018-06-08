@@ -26,8 +26,8 @@ add_executable(goal goal.cpp)
 add_executable(marker_finder_saver marker_finder_saver.cpp)
 add_executable(motion_estimator_ros motion_estimator_ros.cpp)
 add_executable(bag_loader bag_loader.cpp)
-add_executable(listening_keyboard listening_keyboard.cpp)
 add_executable(keyboard_input keyboard_input.cpp)
+
 
 
 
@@ -40,21 +40,21 @@ find_library(RGBD_RTK_VISUALIZATION NAMES rgbd_rtk_visualization)
 find_library(RGBD_RTK_MOTION_ESTIMATION NAMES rgbd_rtk_motion_estimation)
 
 
-target_link_libraries(autonomous_robot  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RGBD_RTK_TRACKING}
+target_link_libraries(autonomous_robot  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RGBD_RTK_TRACKING} ${RGBD_RTK_SLAM}
                                              ${RGBD_RTK_COMMON} ${RGBD_RTK_VISUALIZATION}
                                              ${RGBD_RTK_MOTION_ESTIMATION} ${catkin_LIBRARIES}
  ${OpenCV_LIBS} ${aruco_LIBS})
 target_link_libraries(goal  ${catkin_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(marker_finder_saver  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RGBD_RTK_TRACKING}
                                              ${RGBD_RTK_COMMON} ${RGBD_RTK_VISUALIZATION}
-                                             ${RGBD_RTK_MOTION_ESTIMATION} ${catkin_LIBRARIES}
+                                             ${RGBD_RTK_MOTION_ESTIMATION} ${catkin_LIBRARIES}  ${RGBD_RTK_SLAM}
  ${OpenCV_LIBS} ${aruco_LIBS})
 target_link_libraries(motion_estimator_ros  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RGBD_RTK_TRACKING}
                                              ${RGBD_RTK_COMMON} ${RGBD_RTK_VISUALIZATION}
                                              ${RGBD_RTK_MOTION_ESTIMATION} ${catkin_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(bag_loader   ${catkin_LIBRARIES} ${OpenCV_LIBS})
-target_link_libraries(listening_keyboard  ${catkin_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(keyboard_input  ${catkin_LIBRARIES} ${OpenCV_LIBS})
+
 
 
 
@@ -63,6 +63,5 @@ install(TARGETS autonomous_robot
 		marker_finder_saver
 		motion_estimator_ros
 		bag_loader
-		listening_keyboard
 		keyboard_input
         RUNTIME DESTINATION bin)

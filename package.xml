@@ -2,7 +2,7 @@
 <package>
   <name>autonomous_robot</name>
   <version>0.0.0</version>
-  <description>The rgbd_rtk package</description>
+  <description>The autonomous_robot package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->

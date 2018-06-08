@@ -10,9 +10,9 @@ using namespace std;
 
 int main(int argc, char **argv)
 {
-  ros::init(argc, argv, "talker");
+  ros::init(argc, argv, "talker"); //initializing ROS
   ros::NodeHandle n;
-  ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
+  ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000); //Publishing string msg
   ros::Rate loop_rate(10);
   string id_marker;
   cout<<"q to quit\n";
@@ -34,13 +34,13 @@ int main(int argc, char **argv)
     ROS_INFO("%s\n\n\n\n\n", msg.data.c_str());
 
     
-    chatter_pub.publish(msg);
+    chatter_pub.publish(msg); //publishing string typed in ros msg
 
     ros::spinOnce();
 
     loop_rate.sleep();
 
-    if(id_marker.compare("q") == 0)
+    if(id_marker.compare("q") == 0)//quiting program when 'q' is typed
       break;
 
   }
