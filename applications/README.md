@@ -96,6 +96,7 @@ All programs explanation
 ------------
 
 - Marker Finder Saver
+
 You can change the ARUCO marker dict in >> slam>> marker_finder.cpp >> "	marker_detector_.setDictionary("ARUCO_MIP_36h12", 0);"
 marker_finder_saver.cpp will find markers and save it id and position, it needs camera parameters, markers size, 'marker_saver.txt' and a ros rgb topic.
 To save all markers for use after, use the program "keyboard_input" and type s.
