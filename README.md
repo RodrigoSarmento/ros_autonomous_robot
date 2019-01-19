@@ -1,11 +1,9 @@
-# Natalnet/LPR RGB-D Reconstruction Toolkit
+# Natalnet/LPR RGB-D Autonomous Robot
 
 
 Introduction
 ------------
-
-A set of utility code built by the Natalnet/LPR group for 3D reconstruction
-applications using RGB-D (e.g. Microsoft Kinect) cameras.
+An ongoing project of an autonomous robot using ROS + ARUCO.
 
 Requirements
 ------------
@@ -21,9 +19,9 @@ It is recommended to install both dependencies from source. The following two li
 
 > [Compiling PCL from source on Linux](http://pointclouds.org/documentation/tutorials/compiling_pcl_posix.php)
 
->[Install ROS on Linux](http://wiki.ros.org/kinetic/Installation)
+> [Install ROS on Linux](http://wiki.ros.org/kinetic/Installation)
 
->[Create a catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
+> [Create a catkin workspace](http://wiki.ros.org/catkin/Tutorials/create_a_workspace)
 
 Building
 ------------
