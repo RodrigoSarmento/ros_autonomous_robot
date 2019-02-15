@@ -35,10 +35,11 @@ message(STATUS "Project source directory: " ${PROJECT_SOURCE_DIR})
 message(STATUS "Build directory: " ${PROJECT_BINARY_DIR})
 
 #opencv
-find_package(VTK 6.2 REQUIRED)
+find_package(VTK 7.1 REQUIRED)
 find_package(OpenCV 3.3.1 )
 find_package(Eigen )
 message(STATUS "OpenCV version: " ${OpenCV_VERSION})
+message(STATUS "VTK version: " ${VTK_VERSION})
 #pcl
 find_package(PCL 1.8 REQUIRED PATHS "/usr/local/share/pcl-1.8")
 message(STATUS "PCL Version " ${PCL_VERSION})

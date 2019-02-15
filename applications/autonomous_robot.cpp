@@ -31,9 +31,8 @@ using namespace aruco;
 MarkerDetector marker_detector;
 CameraParameters camera_params;
 vector<Marker> markers;
+string txt;
 float marker_size;
-
-int i=0;
 
 
 struct markerFound{
@@ -53,44 +52,32 @@ void listenKeyboardGoal(const std_msgs::String::ConstPtr& msg); //listening keyb
 bool goalReached = false;
 bool moveToGoal(double xGoal, double yGoal); //moving autonomous to a place
 void loadMarkers(string saved_markers); //open all_markers.txt
-
+void initRos(int argc, char** argv, string rgb_topic);
 
 int main(int argc, char** argv){    
   
   string rgb_topic;
   rgb_topic = "camera/rgb/image_raw";
   if(argc != 5 && argc !=4){
-    fprintf(stderr, "Usage: %s <camera calibration file> <marker size> <all_markers.txt> optional: <rgb_topic> ....bye default : camera/rgb/image_raw \n", argv[0]);
+    fprintf(stderr, "Usage: %s <camera calibration file> <marker size> <aruco_dict> <all_markers.txt> optional: <rgb_topic> ....bye default : camera/rgb/image_raw \n", argv[0]);
     exit(0);
   }
-  if(argc == 4){
+  if(argc == 5){
     printf(" By defult using camera/rgb/image_raw as ros topic\n");  
   }
-   if(argc == 5){
-     rgb_topic = argv[4];
+   if(argc == 6){
+     rgb_topic = argv[5];
   }
-
+  
   camera_params.readFromXMLFile(argv[1]);    //aruco params 
   marker_size = stof(argv[2]);
-  loadMarkers(argv[3]);//loading markers
-
-  marker_detector.setDictionary("ARUCO_MIP_36h12", 0);
+  txt = argv[4];
+  marker_detector.setDictionary(argv[3], 0);
 
   for(int k=0; k<=254; k++){ //initializing markers
     all_markers[k].id = 0;
   }
-
-  ros::init(argc, argv, "autonomous_robot");
-  ros::start();
-
-  ros::NodeHandle n;
-  ros::Subscriber sub = n.subscribe("chatter", 1000, listenKeyboardGoal); //listning navigation goal
-  
-  ros::NodeHandle nh;
-  image_transport::ImageTransport it(nh);
-  image_transport::Subscriber rgb_sub = it.subscribe(rgb_topic, 1, imageCallback);    //subscribing to rgb image
-
-  ros::spin();  //"while true"
+  initRos(argc,argv,rgb_topic);
 
   return 0;
  }
@@ -123,16 +110,15 @@ void markerFinder(cv::Mat rgb ){
   cv::imshow("OPENCV_WINDOW", rgb);  //showing rgb image
   cv::waitKey(1);
 
-  i++;
 }
 
 void listenKeyboardGoal(const std_msgs::String::ConstPtr& msg){
-  
+  loadMarkers(txt);//loading markers
+
   listen_id = msg->data.c_str();
   string::size_type sz; 
 
   listen_id_to_int = stoi(listen_id,&sz);  //converting string to int
-
   if(all_markers[listen_id_to_int].id != 0){   //validing a marker(a marker is valid if it was detected in any frame)
     ROS_INFO("[%s] is a valid marker", msg->data.c_str());
     moveToGoal(all_markers[listen_id_to_int].x_pose, all_markers[listen_id_to_int].y_pose);
@@ -189,10 +175,23 @@ void loadMarkers(string saved_markers){
   arq >> markers_number;
 
   //saving markers information in vector "all_markers"
-  for(int i = 0; i <= markers_number; i++){
+  for(int i = 0; i < markers_number; i++){
     arq >> id >> x >> y;
     all_markers[id].id = id;
     all_markers[id].x_pose = x;
     all_markers[id].y_pose = y;
   }
+}
+void initRos(int argc, char** argv, string rgb_topic){
+  ros::init(argc, argv, "autonomous_robot");
+  ros::start();
+
+  ros::NodeHandle n;
+  ros::Subscriber sub = n.subscribe("chatter", 1000, listenKeyboardGoal); //listning navigation goal
+  
+  ros::NodeHandle nh;
+  image_transport::ImageTransport it(nh);
+  image_transport::Subscriber rgb_sub = it.subscribe(rgb_topic, 1, imageCallback);    //subscribing to rgb image
+
+  ros::spin();  //"while true"
 }
