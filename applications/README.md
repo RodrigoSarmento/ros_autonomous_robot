@@ -44,7 +44,7 @@ This will be in /catkin_ws/devel/lib/autonomous_robot, this will look for all ma
 For save all markers id and poses 
 
 ```bash
-./catkin_ws/devel/lib/autonomous_robot/keyboard_input
+./catkin_ws/devel/lib/autonomous_robot/marker_goal
 s
 ```
 
@@ -81,7 +81,7 @@ We'll need this for send where we want the turtlebot to go, you can load all mar
 Now, if you want to send turtlebot to an marker
 
 ```bash
-./catkin_ws/devel/lib/autonomous_robot/keyborad_input
+./catkin_ws/devel/lib/autonomous_robot/marker_goal
 "valid id"
 ```
 
@@ -99,13 +99,12 @@ All programs explanation
 
 You can change the ARUCO marker dict in >> slam>> marker_finder.cpp >> "	marker_detector_.setDictionary("ARUCO_MIP_36h12", 0);"
 marker_finder_saver.cpp will find markers and save it id and position, it needs camera parameters, markers size, 'marker_saver.txt' and a ros rgb topic.
-To save all markers for use after, use the program "keyboard_input" and type s.
+To save all markers for use after, use the program "marker_goal" and type s.
 
 by default it will use "camera/rgb/image_raw", if you want to use an equivalente topic just type when launch the program as "./motion_estimator camera/rgb/image_color
 
 - Autonomous Robot it needs camera parameters, markers size, 'marker_saver.txt'(from marker_finder_saver.cpp). Autonomous_robot.cpp 
-will wait for an id marker or a goal to move autonomous and avoiding obstacles, to send the goal use 
-"goal.cpp" and to send to a marker use "keyboard.cpp"
+will wait for an id marker or a goal to move autonomous and avoiding obstacles, to send the robot to a marker use "marker_goal", and to send the robot to a specificy location(x,y) use "goal".
 
 by default it will use "camera/rgb/image_raw", if you want to use an equivalente topic just type when launch the program as "./motion_estimator camera/rgb/image_color
 
@@ -127,9 +126,9 @@ if you want to use an equivalente topic just type when launch the program as "./
 
 goal.cpp will send a goal to turtlebot moves to a x,y position
 
-- Keyboard Input
+- marker_goal
 
-Keyboard_input.cpp save all markers id and positions that were saw in any frame when mapping, and in localization sends a goal to move to a marker id.
+marker_goal.cpp save all markers id and positions that were saw in any frame when mapping(marker_finder_saver), and while localizating itself(autonomous_robot) sends a goal to move to a marker id.
 
 
  

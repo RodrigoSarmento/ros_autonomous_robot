@@ -66,7 +66,7 @@ void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose)
 		P(2,0) = R.at<float>(2,0); P(2,1) = R.at<float>(2,1); P(2,2) = R.at<float>(2,2);
 		P(0,3) = markers_[i].Tvec.at<float>(0,0); P(1,3) = markers_[i].Tvec.at<float>(1,0); P(2,3) = markers_[i].Tvec.at<float>(2,0);
 		
-		marker_poses_.push_back(P * cam_pose);
+		marker_poses_.push_back(P.inverse() * cam_pose);
 	}
 }
 //CHANGE ARUCO DIC

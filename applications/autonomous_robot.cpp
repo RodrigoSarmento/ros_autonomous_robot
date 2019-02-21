@@ -112,7 +112,7 @@ void markerFinder(cv::Mat rgb ){
 
 }
 
-void listenKeyboardGoal(const std_msgs::String::ConstPtr& msg){
+void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
   loadMarkers(txt);//loading markers
 
   listen_id = msg->data.c_str();
@@ -169,17 +169,18 @@ bool moveToGoal(double xGoal, double yGoal){
 
 void loadMarkers(string saved_markers){
   int markers_number = 0, id = 0;
-  float x = 0, y = 0;
+  float x = 0, y = 0, z = 0;
   fstream arq;
   arq.open(saved_markers);//open .txt
   arq >> markers_number;
 
   //saving markers information in vector "all_markers"
   for(int i = 0; i < markers_number; i++){
-    arq >> id >> x >> y;
+    arq >> id >> x >> y >> z;
     all_markers[id].id = id;
     all_markers[id].x_pose = x;
     all_markers[id].y_pose = y;
+    all_markers[id].z_pose = z;
   }
 }
 void initRos(int argc, char** argv, string rgb_topic){
@@ -187,7 +188,7 @@ void initRos(int argc, char** argv, string rgb_topic){
   ros::start();
 
   ros::NodeHandle n;
-  ros::Subscriber sub = n.subscribe("chatter", 1000, listenKeyboardGoal); //listning navigation goal
+  ros::Subscriber sub = n.subscribe("marker_goal", 1000, listenKeyboardCallback); //listning navigation goal
   
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
