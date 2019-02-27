@@ -79,9 +79,6 @@ set(RGBD_RTK_MOTION_ESTIMATION rgbd_rtk_motion_estimation)
 add_subdirectory(applications)
 
 
-message(STATUS "CATKIN LIBRARIES " ${OpenCV_LIBS})
-
-
 
 
 ## System dependencies are found with CMake's conventions

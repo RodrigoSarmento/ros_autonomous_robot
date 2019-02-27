@@ -59,13 +59,14 @@ int main(int argc, char** argv){
   string rgb_topic;
   rgb_topic = "camera/rgb/image_raw";
   if(argc != 5 && argc !=4){
-    fprintf(stderr, "Usage: %s <camera calibration file> <marker size> <aruco_dict> <all_markers.txt> optional: <rgb_topic> ....bye default : camera/rgb/image_raw \n", argv[0]);
+    fprintf(stderr, "Usage: %s <camera calibration file> <marker size> <aruco_dict> <all_markers.txt> optional: <rgb_topic> ....by default : camera/rgb/image_raw \n", argv[0]);
     exit(0);
   }
   if(argc == 5){
-    printf(" By defult using camera/rgb/image_raw as ros topic\n");  
+    printf(" By default using camera/rgb/image_raw as ros topic\n");  
   }
    if(argc == 6){
+     printf("rgb_topic : %s", argv[5]);
      rgb_topic = argv[5];
   }
   
