@@ -114,12 +114,17 @@ void markerFinder(cv::Mat rgb ){
 }
 
 void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
-  loadMarkers(txt);//loading markers
 
+  loadMarkers(txt);//loading markers
   listen_id = msg->data.c_str();
   string::size_type sz; 
 
-  listen_id_to_int = stoi(listen_id,&sz);  //converting string to int
+  try{
+    listen_id_to_int = stoi(listen_id,&sz);//converting string to int
+  } 
+  catch(std::invalid_argument& e){
+    cout<<listen_id<< " is not a number\n"<<endl;
+  }
   if(all_markers[listen_id_to_int].id != 0){   //validing a marker(a marker is valid if it was detected in any frame)
     ROS_INFO("[%s] is a valid marker", msg->data.c_str());
     moveToGoal(all_markers[listen_id_to_int].x_pose, all_markers[listen_id_to_int].y_pose);
