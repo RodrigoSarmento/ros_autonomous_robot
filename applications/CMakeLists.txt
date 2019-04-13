@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.3)
+project(Autonomous_Robot)
 
 #Compile in c++ 11
 set(CMAKE_CXX_STANDARD 11)
@@ -17,7 +18,6 @@ set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAG
 
 ##
 
-project(RGBD_RTK)
 
 message(STATUS ">>> applications subdirectory")
 
@@ -25,7 +25,6 @@ add_executable(autonomous_robot autonomous_robot.cpp)
 add_executable(goal goal.cpp)
 add_executable(marker_finder_saver marker_finder_saver.cpp)
 add_executable(motion_estimator_ros motion_estimator_ros.cpp)
-add_executable(bag_loader bag_loader.cpp)
 add_executable(marker_goal marker_goal.cpp)
 
 
@@ -52,7 +51,6 @@ target_link_libraries(marker_finder_saver  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RGB
 target_link_libraries(motion_estimator_ros  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RGBD_RTK_TRACKING}
                                              ${RGBD_RTK_COMMON} ${RGBD_RTK_VISUALIZATION}
                                              ${RGBD_RTK_MOTION_ESTIMATION} ${catkin_LIBRARIES} ${OpenCV_LIBS})
-target_link_libraries(bag_loader   ${catkin_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(marker_goal  ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 
@@ -62,6 +60,5 @@ install(TARGETS autonomous_robot
 		goal
 		marker_finder_saver
 		motion_estimator_ros
-		bag_loader
 		marker_goal
         RUNTIME DESTINATION bin)

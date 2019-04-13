@@ -25,7 +25,6 @@ int main(int argc, char **argv)
     printf("For send a goal to a marker ID use : (E.g ID 55) '55'(no quotation markes)\n");
     printf("For save all markers use 's'(no quotation markers)\n");
     printf("For exit use 'q'(no quotation markers");
-    cout<<"Insira a ID\n";
     getline(cin, id_marker);
     ss << id_marker;
     msg.data = ss.str();

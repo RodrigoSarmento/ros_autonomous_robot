@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "core": "cpp",
+        "thread": "cpp",
+        "iostream": "cpp"
+    }
+}

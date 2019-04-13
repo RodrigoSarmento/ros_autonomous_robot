@@ -27,6 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
   actionlib
   cv_bridge
   image_transport
+  message_filters
   move_base_msgs
   roscpp
   rospy

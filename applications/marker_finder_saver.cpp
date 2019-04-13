@@ -103,6 +103,10 @@ void rosMarkerFinder(cv::Mat rgb){
     CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_); //drawing axis on window
     stringstream ss;
     ss << "m" << marker_finder.markers_[j].id;
+    //cout<<"1 "<<all_markers[1].x_pose<< " "<< all_markers[1].y_pose << " "<< all_markers[1].z_pose<<endl;
+    //cout<<"2 "<<all_markers[2].x_pose<< " "<< all_markers[2].y_pose << " "<< all_markers[2].z_pose<<endl;
+    //cout<<"3 "<<all_markers[3].x_pose<< " "<< all_markers[3].y_pose << " "<< all_markers[3].z_pose<<endl;
+
   }
    
   cv::imshow("OPENCV_WINDOW", rgb);  //showing rgb image
@@ -114,8 +118,8 @@ void rosMarkerFinder(cv::Mat rgb){
 
 void odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 
-  Eigen::Vector3f v_robot(msg->pose.pose.position.x,msg->pose.pose.position.y,msg->pose.pose.position.z); //subscribing turtlebot pose 
-  Eigen::Quaternionf q_robot(msg->pose.pose.orientation.w, msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z); ///subscribing turtlebot orientation pose 
+  Eigen::Vector3f v_robot(msg->pose.pose.position.x,msg->pose.pose.position.y,0); //subscribing turtlebot pose 
+  Eigen::Quaternionf q_robot((msg->pose.pose.orientation.w), msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, (msg->pose.pose.orientation.z)); ///subscribing turtlebot orientation pose 
   
 
   Eigen::Matrix3f R_robot = q_robot.normalized().toRotationMatrix();   // convert a quaternion to a 3x3 rotation matrix:
@@ -125,12 +129,11 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
   robot_pose.block<3,3>(0,0) = R_robot; 
   robot_pose.block<3,1>(0,3) = v_robot;
 
-  Eigen::Vector3f v_camera(-0.0125, 0.287, 0.087); //subscribing turtlebot pose 
+  Eigen::Vector3f v_camera(-0.087, -0.0125, 0.2972); //subscribing turtlebot pose 
   Eigen::Quaternionf q_camera(0.5, -0.5, 0.5, -0.5); ///subscribing turtlebot orientation pose 
 
-  q_camera.normalize();
 
-  Eigen::Matrix3f R_camera = q_camera.toRotationMatrix();   // convert a quaternion to a 3x3 rotation matrix:
+  Eigen::Matrix3f R_camera =  q_camera.normalized().toRotationMatrix();   // convert a quaternion to a 3x3 rotation matrix:
 
   Eigen::Matrix4f camera_pose;
   camera_pose.setIdentity();   // Set to Identity 
@@ -140,6 +143,7 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
   trans_camera_pose = camera_pose.inverse()*robot_pose.inverse(); // calculating Tcamera pose in relation to 0,0 global
 
   //ROS_INFO("Position-> x: [%f], y: [%f], z: [%f]", msg->pose.pose.position.x,msg->pose.pose.position.y, msg->pose.pose.position.z);
+  
   //ROS_INFO("Orientation-> x: [%f], y: [%f], z: [%f], w: [%f]", msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
   //ROS_INFO("Vel-> Linear: [%f], Angular: [%f]", msg->twist.twist.linear.x,msg->twist.twist.angular.z);
 }
@@ -158,7 +162,7 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
     arq<<cont<<endl;
     for(int k=0; k<=254; k++){
       if(all_markers[k].id==0) continue;
-        arq<<all_markers[k].id<<" "<<all_markers[k].z_pose<<" "<<all_markers[k].x_pose << endl;   //saving all markers in "all_markers.txt"
+        arq<<all_markers[k].id<<" "<<all_markers[k].x_pose<<" "<<all_markers[k].y_pose << endl;   //saving all markers in "all_markers.txt"
     }  //z now is x for ROS, y now is -z for ROS, x now is y for ROS
     ROS_INFO("Markers Saved");
   }
