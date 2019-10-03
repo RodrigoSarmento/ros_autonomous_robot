@@ -89,7 +89,7 @@ But if you want to just send turtlebot to an specify point use
 
 ```bash
 ./catkin_ws/devel/lib/autonomous_robot/goal
-"x" "y"
+"waypoint files"
 ```
 
 All programs explanation 
@@ -124,7 +124,7 @@ if you want to use an equivalente topic just type when launch the program as "./
 
 - Goal
 
-goal.cpp will send a goal to turtlebot moves to a x,y position
+goal.cpp will send the robot to all waypoints randomly 
 
 - marker_goal
 

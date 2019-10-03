@@ -182,10 +182,12 @@ void loadMarkers(string saved_markers){
 
   //saving markers information in vector "all_markers"
   for(int i = 0; i < markers_number; i++){
-    arq >> id >> x >> y;
+    arq >> id >> x >> y >>z;
     all_markers[id].id = id;
     all_markers[id].x_pose = x;
     all_markers[id].y_pose = y;
+    all_markers[id].z_pose = z;
+
   }
 }
 void initRos(int argc, char** argv, string rgb_topic){

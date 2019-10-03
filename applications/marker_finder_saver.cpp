@@ -1,3 +1,4 @@
+//C++
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -37,7 +38,7 @@ struct markerFound{
 MarkerFinder marker_finder; //markerfinder
 Eigen::Affine3f trans_camera_pose; //turtlebot pose
 markerFound all_markers[255]; //marker struct
-string all_markers_saved; //keyboard
+string markers_save_file; //keyboard
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg); //listen to rgb image 
 void rosMarkerFinder(cv::Mat rgb); //marker finder
@@ -56,7 +57,7 @@ int main(int argc, char** argv){
 
   if(argc == 5){
     printf(" By defult using camera/rgb/image_raw as ros topic\n");  // if rgb_topic was not set
-  }
+  }     
 
    if(argc == 6){
      rgb_topic = argv[5];  //if rgb_topic was asked
@@ -65,7 +66,7 @@ int main(int argc, char** argv){
   // some paramaters needed by ARUCO
   float marker_size; 
   marker_size = stof(argv[2]);
-  all_markers_saved = argv[4];
+  markers_save_file = argv[4];
   marker_finder.markerParam(argv[1] , marker_size, argv[3]);
 
   for(int k=0; k<=254; k++){ //initializing markers
@@ -154,7 +155,7 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
   int cont=0;
   if(listen.compare("s") == 0){  //validing if string msg is 's'
     ofstream arq;
-    arq.open(all_markers_saved);
+    arq.open(markers_save_file);
     for(int k=0; k<=254; k++){
       if(all_markers[k].id==0) continue;
         cont ++;
@@ -162,7 +163,7 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
     arq<<cont<<endl;
     for(int k=0; k<=254; k++){
       if(all_markers[k].id==0) continue;
-        arq<<all_markers[k].id<<" "<<all_markers[k].x_pose<<" "<<all_markers[k].y_pose << endl;   //saving all markers in "all_markers.txt"
+        arq<<all_markers[k].id<<" "<<all_markers[k].x_pose<<" "<<all_markers[k].y_pose <<" "<<all_markers[k].z_pose << endl;   //saving all markers in "all_markers.txt"
     }  //z now is x for ROS, y now is -z for ROS, x now is y for ROS
     ROS_INFO("Markers Saved");
   }

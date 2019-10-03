@@ -22,7 +22,7 @@ set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAG
 message(STATUS ">>> applications subdirectory")
 
 add_executable(autonomous_robot autonomous_robot.cpp)
-add_executable(goal goal.cpp)
+add_executable(random_goals random_goals.cpp)
 add_executable(marker_finder_saver marker_finder_saver.cpp)
 add_executable(motion_estimator_ros motion_estimator_ros.cpp)
 add_executable(marker_goal marker_goal.cpp)
@@ -43,7 +43,7 @@ target_link_libraries(autonomous_robot  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RGBD_R
                                              ${RGBD_RTK_COMMON} ${RGBD_RTK_VISUALIZATION}
                                              ${RGBD_RTK_MOTION_ESTIMATION} ${catkin_LIBRARIES}
  ${OpenCV_LIBS} ${aruco_LIBS})
-target_link_libraries(goal  ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(random_goals  ${catkin_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(marker_finder_saver  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RGBD_RTK_TRACKING}
                                              ${RGBD_RTK_COMMON} ${RGBD_RTK_VISUALIZATION}
                                              ${RGBD_RTK_MOTION_ESTIMATION} ${catkin_LIBRARIES}  ${RGBD_RTK_SLAM}
@@ -57,7 +57,7 @@ target_link_libraries(marker_goal  ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 
 install(TARGETS autonomous_robot		
-		goal
+		random_goals
 		marker_finder_saver
 		motion_estimator_ros
 		marker_goal
