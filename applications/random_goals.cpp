@@ -11,44 +11,48 @@
 
 
 using namespace std;
-struct waypoint{
+
+struct waypoint{ //Structure that saves a list of waypoints, n is the number of waypoints saved
    int n;
    double x;
    double y;
 };
 
 // function declarations
-bool moveToGoal(double x, double y);
-void loadWaypoints(waypoint waypoints[], int n);
-void randomlygoals(waypoint waypoints[], int n);
+bool moveToGoal(double x, double y); //move to a position x y in map
+void randomlygoals(waypoint waypoints[], int n); //Main loop that makes the robot goes to randomly positions
+void loadWaypoints(waypoint waypoints[], int n, string waypoints_file); //Load waypoints in file
 //Variable declarations
+
 waypoint waypoints[200];
 int local = 1;
+
 int attempts = 0;
 int sucess = 0;
 int failed = 0;
-string waypoints_file;
+
 
 int main(int argc, char** argv){
-   ros::init(argc, argv, "loop_goals_node");
+   ros::init(argc, argv, "loop_goals_node"); //initializing node
 
    if(argc != 2){
-      fprintf(stderr, "Usage : %s <waypoints file>\n", argv[0]);
+      fprintf(stderr, "Usage : %s <waypoints file>\n", argv[0]); //need to give the waypoints file
       exit(0);
    }   
+
+   string waypoints_file;
    waypoints_file = argv[1]; // reading waypoints file
-   loadWaypoints(waypoints, 200); 
+   loadWaypoints(waypoints, 200, waypoints_file);  //loading waypoints to waypoint list
+
    srand (time(NULL));
 
-   randomlygoals(waypoints,waypoints[0].n);
+   randomlygoals(waypoints,waypoints[0].n); //Main loop
    ros::spinOnce();
    
    return 0;
 }
 
 bool moveToGoal(double x, double y){
-   printf("Attempts destination: %i\nReached: %i \nFailed: %i \n", attempts,sucess,failed);
-
    //define a client for to send goal requests to the move_base server through a SimpleActionClient
    actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
 
@@ -63,7 +67,7 @@ bool moveToGoal(double x, double y){
    goal.target_pose.header.frame_id = "map";
    goal.target_pose.header.stamp = ros::Time::now();
 
-   /* moving towards the goal*/
+   // moving towards the goal
 
    goal.target_pose.pose.position.x =  x;
    goal.target_pose.pose.position.y =  y;
@@ -77,6 +81,7 @@ bool moveToGoal(double x, double y){
    ac.sendGoal(goal);
 
    ac.waitForResult();
+   //If the robot reaches the position, returns true, otherwise returns false
    if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) return true;     
    else return false;
 }
@@ -87,35 +92,38 @@ void randomlygoals(waypoint waypoints[], int n){
    ofstream arq;
    arq.open("attemps.txt");
    
-   arq<<"teste\n";
    while(true){
-       i = rand() % waypoints[0].n;
-       if(i == i_last){
-          continue;
+      i = rand() % waypoints[0].n;//sorting a randomly position
+      if(i == i_last){ //making sure that the robot is not trying to go to where he already is
+         continue;
+      }
+
+      printf("Attempts destination: %i\nReached: %i \nFailed: %i \n\n", attempts,sucess,failed);
+      printf("Trying to go to waypoint %i: x = %f y = %f\n",i, waypoints[i].x, waypoints[i].y);
+
+      if(moveToGoal(waypoints[i].x, waypoints[i].y) == true){//If the robot reaches the position update the sucess and attempts
+         printf("Robot reached waypoint\n");
+         sucess++;
+         attempts++;
+      }
+      else{//If the robot failed to reached the position update the failed and attempts
+         printf("Robot faild to reach waypoint\n");
+         failed++;
+         attempts++;
        }
-       ROS_INFO("Trying to go to waypoint %i: %f %f",i, waypoints[i].x, waypoints[i].y);
-       if(moveToGoal(waypoints[i].x, waypoints[i].y) == true){
-          ROS_INFO("Robot reached waypoint");
-          sucess++;
-          attempts++;
-       } 
-       else{
-          ROS_INFO("Robot faild to reach waypoint");
-          failed++;
-          attempts++;
-       }
-      if(arq.is_open()){
+
+      if(arq.is_open()){//Save in file the recent update
          arq.seekp(0, ios::beg);
          arq<<"Attempts : "<<attempts<<endl;
          arq<<"Sucess : "<<sucess<<endl;
          arq<<"Failed :"<<failed<<endl;
       }
-   else cout<<"file couldn't be open\n";
+      else cout<<"file couldn't be open\n";
 
    i_last = i;
    }
 }
-void loadWaypoints(waypoint waypoints[], int n){
+void loadWaypoints(waypoint waypoints[], int n, string waypoints_file){
    // open and read file
    ifstream load_file;
    load_file.open(waypoints_file);
@@ -123,6 +131,7 @@ void loadWaypoints(waypoint waypoints[], int n){
       cout << "Unable to open file";
       exit(1);
    }
+
    // fill waypoints list
    load_file>>n;
    waypoints[0].n=n;

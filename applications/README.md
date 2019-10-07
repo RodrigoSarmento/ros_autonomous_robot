@@ -44,8 +44,7 @@ This will be in /catkin_ws/devel/lib/autonomous_robot, this will look for all ma
 For save all markers id and poses 
 
 ```bash
-./catkin_ws/devel/lib/autonomous_robot/marker_goal
-s
+./catkin_ws/devel/lib/autonomous_robot/marker_goals
 ```
 
 for save the map when the map is finished, /tmp/my_map will erase everything when rebooting.
@@ -130,6 +129,19 @@ goal.cpp will send the robot to all waypoints randomly
 
 marker_goal.cpp save all markers id and positions that were saw in any frame when mapping(marker_finder_saver), and while localizating itself(autonomous_robot) sends a goal to move to a marker id.
 
+-Random Goals
+
+random_goals.cpp load a file with x and y positions in the following format:
+```bash
+3 %Number of waypoints%
+x y
+x1 y1
+x2 y2
+```
+Beings xs and ys double.
+
+Than makes the robot goes to those positions randomly and saving how many attempts and 
+how many succeds and failures at reaching the positions.
 
  
 
