@@ -40,12 +40,8 @@ int main(int argc, char** argv){
    loadWaypoints(waypoints, 200); 
    srand (time(NULL));
 
-
-   
    randomlygoals(waypoints,waypoints[0].n);
    ros::spinOnce();
-
-  // moveToGoal(waypoint1, 2); //declare the coordinates of interest 
    
    return 0;
 }
@@ -89,8 +85,9 @@ void randomlygoals(waypoint waypoints[], int n){
    int i=0;
    int i_last=-1;
    ofstream arq;
-   arq.open("attemps");
-   arq<<"rola";
+   arq.open("attemps.txt");
+   
+   arq<<"teste\n";
    while(true){
        i = rand() % waypoints[0].n;
        if(i == i_last){
@@ -107,27 +104,31 @@ void randomlygoals(waypoint waypoints[], int n){
           failed++;
           attempts++;
        }
-   }
-   arq.seekp(0, ios::beg);
-   arq<<"Attempts : "<< attempts<<endl;
-   arq<<"Sucess : "<< sucess<<endl;
-   arq<<"Failed :"<<failed<<endl;
-   
+      if(arq.is_open()){
+         arq.seekp(0, ios::beg);
+         arq<<"Attempts : "<<attempts<<endl;
+         arq<<"Sucess : "<<sucess<<endl;
+         arq<<"Failed :"<<failed<<endl;
+      }
+   else cout<<"file couldn't be open\n";
+
    i_last = i;
+   }
 }
 void loadWaypoints(waypoint waypoints[], int n){
    // open and read file
-   ifstream arq;
-   arq.open(waypoints_file);
-   if(!arq){
+   ifstream load_file;
+   load_file.open(waypoints_file);
+   if(!load_file){
       cout << "Unable to open file";
       exit(1);
    }
    // fill waypoints list
-   arq>>n;
+   load_file>>n;
    waypoints[0].n=n;
    for(int i = 0; i < n; i++){
-      arq>>waypoints[i].x;
-      arq>>waypoints[i].y;
+      load_file>>waypoints[i].x;
+      load_file>>waypoints[i].y;
    }
+   load_file.close();
 }
