@@ -64,8 +64,8 @@ void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose)
 		P(0,0) = R.at<float>(0,0); P(0,1) = R.at<float>(0,1); P(0,2) = R.at<float>(0,2);
 		P(1,0) = R.at<float>(1,0); P(1,1) = R.at<float>(1,1); P(1,2) = R.at<float>(1,2);
 		P(2,0) = R.at<float>(2,0); P(2,1) = R.at<float>(2,1); P(2,2) = R.at<float>(2,2);
-		P(0,3) = markers_[i].Tvec.at<float>(0,0); P(1,3) = markers_[i].Tvec.at<float>(1,0); P(2,3) = markers_[i].Tvec.at<float>(2,0);
-		
+		P(0,3) = markers_[i].Tvec.at<float>(0,0); P(1,3) = markers_[i].Tvec.at<float>(1,0); P(2,3) = markers_[i].Tvec.at<float>(2,0) - 0.5;
+		//I'm adding 0.5 in z axis in order to make the robot goes to a point exatly at the front of the aruco marker
 		marker_poses_.push_back(cam_pose.inverse() * P);
 	}
 }

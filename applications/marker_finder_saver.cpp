@@ -104,10 +104,6 @@ void rosMarkerFinder(cv::Mat rgb){
     CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_); //drawing axis on window
     stringstream ss;
     ss << "m" << marker_finder.markers_[j].id;
-    //cout<<"1 "<<all_markers[1].x_pose<< " "<< all_markers[1].y_pose << " "<< all_markers[1].z_pose<<endl;
-    //cout<<"2 "<<all_markers[2].x_pose<< " "<< all_markers[2].y_pose << " "<< all_markers[2].z_pose<<endl;
-    //cout<<"3 "<<all_markers[3].x_pose<< " "<< all_markers[3].y_pose << " "<< all_markers[3].z_pose<<endl;
-
   }
    
   cv::imshow("OPENCV_WINDOW", rgb);  //showing rgb image
@@ -164,7 +160,7 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
     for(int k=0; k<=254; k++){
       if(all_markers[k].id==0) continue;
         arq<<all_markers[k].id<<" "<<all_markers[k].x_pose<<" "<<all_markers[k].y_pose <<" "<<all_markers[k].z_pose << endl;   //saving all markers in "all_markers.txt"
-    }  //z now is x for ROS, y now is -z for ROS, x now is y for ROS
+    }
     ROS_INFO("Markers Saved");
   }
   else 

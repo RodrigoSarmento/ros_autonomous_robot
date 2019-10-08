@@ -91,37 +91,37 @@ void randomlygoals(waypoint waypoints[], int n){
    int i_last=-1;
    ofstream arq;
    arq.open("attemps.txt");
-   
-   while(true){
-      i = rand() % waypoints[0].n;//sorting a randomly position
-      if(i == i_last){ //making sure that the robot is not trying to go to where he already is
-         continue;
+   char x='e';
+      while(true){
+         i = rand() % waypoints[0].n;//sorting a randomly position
+         if(i == i_last){ //making sure that the robot is not trying to go to where he already is
+            continue;
+         }
+
+         printf("Attempts destination: %i\nReached: %i \nFailed: %i \n\n", attempts,sucess,failed);
+         printf("Trying to go to waypoint %i: x = %f y = %f\n",i, waypoints[i].x, waypoints[i].y);
+
+         if(moveToGoal(waypoints[i].x, waypoints[i].y) == true){//If the robot reaches the position update the sucess and attempts
+            printf("Robot reached waypoint\n");
+            sucess++;
+            attempts++;
+         }
+         else{//If the robot failed to reached the position update the failed and attempts
+            printf("Robot faild to reach waypoint\n");
+            failed++;
+            attempts++;
+         }
+
+         if(arq.is_open()){//Save in file the recent update
+            arq.seekp(0, ios::beg);
+            arq<<"Attempts : "<<attempts<<endl;
+            arq<<"Sucess : "<<sucess<<endl;
+            arq<<"Failed :"<<failed<<endl;
+         }
+         else cout<<"file couldn't be open\n";
+
+      i_last = i;
       }
-
-      printf("Attempts destination: %i\nReached: %i \nFailed: %i \n\n", attempts,sucess,failed);
-      printf("Trying to go to waypoint %i: x = %f y = %f\n",i, waypoints[i].x, waypoints[i].y);
-
-      if(moveToGoal(waypoints[i].x, waypoints[i].y) == true){//If the robot reaches the position update the sucess and attempts
-         printf("Robot reached waypoint\n");
-         sucess++;
-         attempts++;
-      }
-      else{//If the robot failed to reached the position update the failed and attempts
-         printf("Robot faild to reach waypoint\n");
-         failed++;
-         attempts++;
-       }
-
-      if(arq.is_open()){//Save in file the recent update
-         arq.seekp(0, ios::beg);
-         arq<<"Attempts : "<<attempts<<endl;
-         arq<<"Sucess : "<<sucess<<endl;
-         arq<<"Failed :"<<failed<<endl;
-      }
-      else cout<<"file couldn't be open\n";
-
-   i_last = i;
-   }
 }
 void loadWaypoints(waypoint waypoints[], int n, string waypoints_file){
    // open and read file
