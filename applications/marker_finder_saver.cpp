@@ -97,13 +97,14 @@ void rosMarkerFinder(cv::Mat rgb){
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     all_markers[marker_finder.markers_[j].id].id = marker_finder.markers_[j].id;     //save all markers in a vetor 
-    all_markers[marker_finder.markers_[j].id].x_pose = marker_finder.marker_poses_[j](0,3); //save marker position 
-    all_markers[marker_finder.markers_[j].id].y_pose = marker_finder.marker_poses_[j](1,3);
-    all_markers[marker_finder.markers_[j].id].z_pose = marker_finder.marker_poses_[j](2,3);
+    all_markers[marker_finder.markers_[j].id].x_pose = marker_finder.marker_point_poses_[j](0,0); //save marker position 
+    all_markers[marker_finder.markers_[j].id].y_pose = marker_finder.marker_point_poses_[j](1,0);
+    all_markers[marker_finder.markers_[j].id].z_pose = marker_finder.marker_point_poses_[j](2,0);
     marker_finder.markers_[j].draw(rgb, Scalar(0,0,255), 1);   //drawing markers in rgb image
     CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_); //drawing axis on window
     stringstream ss;
     ss << "m" << marker_finder.markers_[j].id;
+    cout<<marker_finder.markers_[j].id<<" "<<marker_finder.marker_point_poses_[j](0,0)<<" "<<marker_finder.marker_point_poses_[j](1,0)<<endl;
   }
    
   cv::imshow("OPENCV_WINDOW", rgb);  //showing rgb image

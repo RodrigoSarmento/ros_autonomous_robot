@@ -56,6 +56,9 @@ protected:
 	//Set the pose of all detected markers w.r.t. the global ref. frame
 	void setMarkerPosesGlobal(Eigen::Affine3f cam_pose);
 
+	//Set the pose of all detected markers plus a distance in the global ref. frame
+	void setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose);
+
 public:
 	
 	//(ARUCO) Camera intrinsic parameters
@@ -70,6 +73,8 @@ public:
 	//Vector with the pose of each detected marker 
 	std::vector<Eigen::Affine3f> marker_poses_;
 	
+	//Vector with the pose of each 3d point marker needed by the robot Global
+	std::vector<Eigen::Vector4f> marker_point_poses_;
 	//Default constructor
 	MarkerFinder();
 	

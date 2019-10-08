@@ -33,12 +33,12 @@ using namespace cv;
 using namespace aruco;
 
 void MarkerFinder::setMarkerPosesLocal()
-{	
+{// This function finds ther marker pose local(camera ref frame e.g.)
 	marker_poses_local_.clear();
 	for(size_t i = 0; i < markers_.size(); i++)
 	{
-		Mat R = Mat::eye(3, 3, CV_32FC1);
-		Eigen::Affine3f P = Eigen::Affine3f::Identity();
+		Mat R = Mat::eye(3, 3, CV_32FC1);// Rotation Matrix
+		Eigen::Affine3f P = Eigen::Affine3f::Identity(); // Aruco Pose
 		
 		Rodrigues(markers_[i].Rvec, R);
 	
@@ -47,17 +47,17 @@ void MarkerFinder::setMarkerPosesLocal()
 		P(2,0) = R.at<float>(2,0); P(2,1) = R.at<float>(2,1); P(2,2) = R.at<float>(2,2);
 		P(0,3) = markers_[i].Tvec.at<float>(0,0); P(1,3) = markers_[i].Tvec.at<float>(1,0); P(2,3) = markers_[i].Tvec.at<float>(2,0);
 		
-		marker_poses_local_.push_back(P);
+		marker_poses_local_.push_back(P); // Pushing back the marker pose in the marker_poses_local vector
 	}
 }
 
 void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose)
-{
+{// This funcion finds the marker pose global(map ref frame)
 	marker_poses_.clear();
 	for(size_t i = 0; i < markers_.size(); i++)
 	{
-		Mat R = Mat::eye(3, 3, CV_32FC1);
-		Eigen::Affine3f P = Eigen::Affine3f::Identity();
+		Mat R = Mat::eye(3, 3, CV_32FC1); // Rotation Matrix
+		Eigen::Affine3f P = Eigen::Affine3f::Identity(); // Aruco Pose
 		
 		Rodrigues(markers_[i].Rvec, R);
 	
@@ -65,8 +65,38 @@ void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose)
 		P(1,0) = R.at<float>(1,0); P(1,1) = R.at<float>(1,1); P(1,2) = R.at<float>(1,2);
 		P(2,0) = R.at<float>(2,0); P(2,1) = R.at<float>(2,1); P(2,2) = R.at<float>(2,2);
 		P(0,3) = markers_[i].Tvec.at<float>(0,0); P(1,3) = markers_[i].Tvec.at<float>(1,0); P(2,3) = markers_[i].Tvec.at<float>(2,0) - 0.5;
-		//I'm adding 0.5 in z axis in order to make the robot goes to a point exatly at the front of the aruco marker
+		// I'm adding 0.5 in z axis in order to make the robot goes to a point exatly at the front of the aruco marker
 		marker_poses_.push_back(cam_pose.inverse() * P);
+	}
+}
+
+void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose)
+{/* This function save the marker pose where the robot need to go.
+ It's the sabe aruco pose but with a value added in order to the robot always find a place inside of the map
+ In Some situations the aruco marker can be detected outside of the map, since it is oftenly
+ placed in a wall(Precision erros can place the aruco marker outside of the map)
+ */  
+	marker_poses_.clear();
+	for(size_t i = 0; i < markers_.size(); i++)
+	{
+		Mat R = Mat::eye(3, 3, CV_32FC1); // Orientation 
+		Eigen::Affine3f P = Eigen::Affine3f::Identity();// Marker pose
+		Eigen::Vector4f F = Eigen::Vector4f(); // Distance between aruco and the 3D point we want
+		Eigen::Vector4f V = Eigen::Vector4f(); // 3D point pose 
+		F(0,0) = 0.5;
+		F(1,0) = 0.0;
+		F(2,0) = 0.0;
+		F(3,0) = 1.0;
+
+		Rodrigues(markers_[i].Rvec, R);
+	
+		P(0,0) = R.at<float>(0,0); P(0,1) = R.at<float>(0,1); P(0,2) = R.at<float>(0,2);
+		P(1,0) = R.at<float>(1,0); P(1,1) = R.at<float>(1,1); P(1,2) = R.at<float>(1,2);
+		P(2,0) = R.at<float>(2,0); P(2,1) = R.at<float>(2,1); P(2,2) = R.at<float>(2,2);
+		P(0,3) = markers_[i].Tvec.at<float>(0,0); P(1,3) = markers_[i].Tvec.at<float>(1,0); P(2,3) = markers_[i].Tvec.at<float>(2,0);
+
+		V = P * F; //Find the point in the Aruco ref frame
+		marker_point_poses_.push_back(cam_pose.inverse() * V);  //Find the pose point 3d Global ref frame
 	}
 }
 //CHANGE ARUCO DIC
@@ -93,5 +123,5 @@ void MarkerFinder::detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose)
 	markers_.clear();
 	marker_detector_.detect(img, markers_, camera_params_, marker_size_);
 	
-	setMarkerPosesGlobal(cam_pose);
+	setMarkerPointPosesGlobal(cam_pose);
 }
