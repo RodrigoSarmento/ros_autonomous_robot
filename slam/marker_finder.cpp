@@ -27,6 +27,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include "marker_finder.h"
+#include <math.h>
 
 using namespace std;
 using namespace cv;
@@ -83,6 +84,7 @@ void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose)
 		Eigen::Affine3f P = Eigen::Affine3f::Identity();// Marker pose
 		Eigen::Vector4f F = Eigen::Vector4f(); // Distance between aruco and the 3D point we want
 		Eigen::Vector4f V = Eigen::Vector4f(); // 3D point pose 
+		double x=0,y=0,z=0;
 		F(0,0) = 0.0;
 		F(1,0) = 0.0;
 		F(2,0) = 0.5;
@@ -95,8 +97,16 @@ void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose)
 		P(2,0) = R.at<float>(2,0); P(2,1) = R.at<float>(2,1); P(2,2) = R.at<float>(2,2);
 		P(0,3) = markers_[i].Tvec.at<float>(0,0); P(1,3) = markers_[i].Tvec.at<float>(1,0); P(2,3) = markers_[i].Tvec.at<float>(2,0);
 
+		x = pow(P(0,3),2);
+		y = pow(P(1,3),2);
+		z = pow(P(2,3),2);
+		/*
+		if(sqrt(x + y + z) > 4){
+			break;
+		}
+		*/
 		V = P * F; //Find the point in the Aruco ref frame
-		
+	
 		marker_point_poses_.push_back(cam_pose.inverse() * V);  //Find the pose point 3d Global ref frame
 	}
 }
