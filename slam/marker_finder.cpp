@@ -76,16 +76,16 @@ void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose)
  In Some situations the aruco marker can be detected outside of the map, since it is oftenly
  placed in a wall(Precision erros can place the aruco marker outside of the map)
  */  
-	marker_poses_.clear();
+	marker_point_poses_.clear();
 	for(size_t i = 0; i < markers_.size(); i++)
 	{
 		Mat R = Mat::eye(3, 3, CV_32FC1); // Orientation 
 		Eigen::Affine3f P = Eigen::Affine3f::Identity();// Marker pose
 		Eigen::Vector4f F = Eigen::Vector4f(); // Distance between aruco and the 3D point we want
 		Eigen::Vector4f V = Eigen::Vector4f(); // 3D point pose 
-		F(0,0) = 0.5;
+		F(0,0) = 0.0;
 		F(1,0) = 0.0;
-		F(2,0) = 0.0;
+		F(2,0) = 0.5;
 		F(3,0) = 1.0;
 
 		Rodrigues(markers_[i].Rvec, R);
@@ -96,6 +96,7 @@ void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose)
 		P(0,3) = markers_[i].Tvec.at<float>(0,0); P(1,3) = markers_[i].Tvec.at<float>(1,0); P(2,3) = markers_[i].Tvec.at<float>(2,0);
 
 		V = P * F; //Find the point in the Aruco ref frame
+		
 		marker_point_poses_.push_back(cam_pose.inverse() * V);  //Find the pose point 3d Global ref frame
 	}
 }

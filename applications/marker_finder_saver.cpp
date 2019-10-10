@@ -104,7 +104,7 @@ void rosMarkerFinder(cv::Mat rgb){
     CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_); //drawing axis on window
     stringstream ss;
     ss << "m" << marker_finder.markers_[j].id;
-    cout<<marker_finder.markers_[j].id<<" "<<marker_finder.marker_point_poses_[j](0,0)<<" "<<marker_finder.marker_point_poses_[j](1,0)<<endl;
+    cout<<marker_finder.marker_point_poses_[j](0,0)<<" "<<marker_finder.marker_point_poses_[j](1,0)<<" "<<marker_finder.marker_point_poses_[j](2,0)<<" "<<marker_finder.marker_point_poses_[j](3,0)<<endl;
   }
    
   cv::imshow("OPENCV_WINDOW", rgb);  //showing rgb image
