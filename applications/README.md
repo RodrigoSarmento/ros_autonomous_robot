@@ -99,6 +99,7 @@ All programs explanation
 You can change the ARUCO marker dict in >> slam>> marker_finder.cpp >> "	marker_detector_.setDictionary("ARUCO_MIP_36h12", 0);"
 marker_finder_saver.cpp will find markers and save it id and position, it needs camera parameters, markers size, 'marker_saver.txt' and a ros rgb topic.
 To save all markers for use after, use the program "marker_goal" and type s.
+This program is only going to save markers closer than 4m in order to resuce error detection in low cost cameras. If you want to change the range, you can do it in marker_finder.cpp "setMarkerPointPosesGlobal" functino
 
 by default it will use "camera/rgb/image_raw", if you want to use an equivalente topic just type when launch the program as "./motion_estimator camera/rgb/image_color
 

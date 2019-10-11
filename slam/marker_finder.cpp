@@ -114,15 +114,23 @@ void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose)
 		
 	}
 }
-//CHANGE ARUCO DIC
-//ARUCO_MIP_36h12
+/* Arucos dictionary
+ARUCO, Original
+ARUCO_MIP_25h7,
+ARUCO_MIP_16h3,
+ARUCO_MIP_36h12, Recommended
+ARTAG,
+ARTOOLKITPLUS,
+ARTOOLKITPLUSBCH,
+TAG16h5,TAG25h7,TAG25h9,TAG36h11,TAG36h10 
+*/
 MarkerFinder::MarkerFinder()
-{
+{//set dictionary
 	marker_detector_.setDictionary("ARUCO_MIP_36h12", 0);
 }
 
 void MarkerFinder::markerParam(char params[], float size, char aruco_dic[])
-{
+{//Load params 
 	try{
 		marker_detector_.setDictionary(aruco_dic, 0);
   	}
@@ -134,7 +142,7 @@ void MarkerFinder::markerParam(char params[], float size, char aruco_dic[])
 }
 
 void MarkerFinder::detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose)
-{
+{//Detect marker and calls setMarkerPointPosesGlobal
 	markers_.clear();
 	marker_detector_.detect(img, markers_, camera_params_, marker_size_);
 	

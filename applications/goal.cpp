@@ -55,7 +55,7 @@ bool moveToGoal(double xGoal, double yGoal){
    ac.sendGoal(goal);
 
    ac.waitForResult();
-
+   //Goal result
    if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
       ROS_INFO("You have reached the destination");
       return true;
