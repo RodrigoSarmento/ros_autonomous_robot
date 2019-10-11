@@ -100,14 +100,18 @@ void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose)
 		x = pow(P(0,3),2);
 		y = pow(P(1,3),2);
 		z = pow(P(2,3),2);
-		/*
-		if(sqrt(x + y + z) > 4){
-			break;
+		
+		///getting the absolute distance between camera and marker
+		///if their distance is closer then 4meters save marker pose
+		if(sqrt(x + y + z) < 4){
+			V = P * F; //Find the point in the Aruco ref frame
+			marker_point_poses_.push_back(cam_pose.inverse() * V);  //Find the pose point 3d Global ref frame
 		}
-		*/
-		V = P * F; //Find the point in the Aruco ref frame
-	
-		marker_point_poses_.push_back(cam_pose.inverse() * V);  //Find the pose point 3d Global ref frame
+		if(sqrt(x +y +z) >= 4){
+			markers_.clear();
+		}
+		
+		
 	}
 }
 //CHANGE ARUCO DIC
