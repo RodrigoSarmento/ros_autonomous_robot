@@ -31,8 +31,6 @@ using namespace aruco;
 MarkerDetector marker_detector;
 CameraParameters camera_params;
 vector<Marker> markers;
-string txt;
-float marker_size;
 
 
 struct markerFound{
@@ -45,40 +43,28 @@ struct markerFound{
 string listen_id;
 int listen_id_to_int;
 markerFound all_markers[255];
+string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
+FileStorage fs(filename, FileStorage::READ);
+bool goalReached = false;
+
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg); //subscribe to rgb image
 void markerFinder(cv::Mat rgb); //marker finder
 void listenKeyboardGoal(const std_msgs::String::ConstPtr& msg); //listening keyboard input for navigation
-bool goalReached = false;
 bool moveToGoal(double xGoal, double yGoal); //moving autonomous to a place
-void loadMarkers(string saved_markers); //open all_markers.txt
+void loadMarkers(string aruco_poses_file); //open all_markers.txt
 void initRos(int argc, char** argv, string rgb_topic);
 
 int main(int argc, char** argv){    
-  
-  string rgb_topic;
-  rgb_topic = "camera/rgb/image_raw";
-  if(argc != 5 && argc !=4){
-    fprintf(stderr, "Usage: %s <camera calibration file> <marker size> <aruco_dict> <all_markers.txt> optional: <rgb_topic> ....by default : camera/rgb/image_raw \n", argv[0]);
-    exit(0);
-  }
-  if(argc == 5){
-    printf(" By default using camera/rgb/image_raw as ros topic\n");  
-  }
-   if(argc == 6){
-     printf("rgb_topic : %s", argv[5]);
-     rgb_topic = argv[5];
-  }
-  
-  camera_params.readFromXMLFile(argv[1]);    //aruco params 
-  marker_size = stof(argv[2]);
-  txt = argv[4];
-  marker_detector.setDictionary(argv[3], 0);
+  fs.open(filename, FileStorage::READ);  //Reading config file
+
+  camera_params.readFromXMLFile(fs["camera_calibration_file"]);    //aruco params 
+  marker_detector.setDictionary(fs["aruco_dic"], 0);
 
   for(int k=0; k<=254; k++){ //initializing markers
     all_markers[k].id = 0;
   }
-  initRos(argc,argv,rgb_topic);
+  initRos(argc,argv,fs["rgb_topic"]);
 
   return 0;
  }
@@ -99,7 +85,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
 
 void markerFinder(cv::Mat rgb ){
 
-  marker_detector.detect(rgb, markers, camera_params, marker_size);   //Detect and view Aruco markers
+  marker_detector.detect(rgb, markers, camera_params, fs["marker_size"]);   //Detect and view Aruco markers
 
   for (size_t j = 0; j < markers.size(); j++){
     markers[j].draw(rgb, Scalar(0,0,255), 1);   //drawing markers in rgb image
@@ -115,7 +101,7 @@ void markerFinder(cv::Mat rgb ){
 
 void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
 
-  loadMarkers(txt);//loading markers
+  loadMarkers(fs["aruco_poses_file"]);//loading markers
   listen_id = msg->data.c_str();
   string::size_type sz; 
 
@@ -173,11 +159,11 @@ bool moveToGoal(double xGoal, double yGoal){
    }
 }
 
-void loadMarkers(string saved_markers){
+void loadMarkers(string aruco_poses_file){
   int markers_number = 0, id = 0;
   float x = 0, y = 0, z = 0;
   fstream arq;
-  arq.open(saved_markers);//open .txt
+  arq.open(aruco_poses_file);//open .txt
   arq >> markers_number;
 
   //saving markers information in vector "all_markers"

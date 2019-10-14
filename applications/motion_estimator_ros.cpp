@@ -22,6 +22,7 @@
 #include <reconstruction_visualizer.h>
 
 using namespace std;
+using namespace cv;
 
 ///rgbd_rtk variables
 KLTTracker tracker;
@@ -35,33 +36,22 @@ pcl::PointCloud<PointT>::Ptr prev_cloud(new pcl::PointCloud<PointT>);
 pcl::PointCloud<PointT>::Ptr curr_cloud(new pcl::PointCloud<PointT>);
 int i=0;
 
+
 void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD); //subscribing rgb and depth image
 void motionEstimator(cv::Mat rgb , cv::Mat depth); //motion estiomator
 
 
 int main(int argc, char** argv){
-  
-  string rgb_topic,depth_topic;
-  rgb_topic = "camera/rgb/image_raw";
-  depth_topic = "camera/depth/image_raw";
-  if(argc != 1 && argc!= 3){
-    fprintf(stderr, "Usage: %s optional: <rgb_topic> <depth_topic>....bye default : camera/rgb/image_raw and camera/depth/image_raw\n", argv[0]);
-    exit(0); 
-  }
-  if(argc == 1){
-    printf(" By defult using camera/rgb/image_raw and camera/depth/image_raw as ros topics\n");  
-  }
-  if(argc == 3){
-    rgb_topic = argv[1];
-    depth_topic = argv[2]; 
-  }
-  
+  string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
+  FileStorage fs(filename, FileStorage::READ);
+  fs.open(filename, FileStorage::READ);
+
   ros::init(argc, argv, "bag_loader"); //initializing ros
   ros::start();
   ros::NodeHandle nh;
 
-  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, rgb_topic, 1); //subscribing to rgb topic
-  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, depth_topic, 1);  //subscribing to depth topic
+  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, fs["rgb_topic"], 1); //subscribing to rgb topic
+  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, fs["depth_topic"], 1);  //subscribing to depth topic
   typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy; //defining which topics will be sync
   message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), rgb_sub,depth_sub); //sync rgb and depth topic in "MySyncPolicy(x)" miliseconds
   sync.registerCallback(boost::bind(&callback, _1, _2));

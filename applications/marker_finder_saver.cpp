@@ -38,7 +38,9 @@ struct markerFound{
 MarkerFinder marker_finder; //markerfinder
 Eigen::Affine3f trans_camera_pose; //turtlebot pose
 markerFound all_markers[255]; //marker struct
-string markers_save_file; //keyboard
+string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
+FileStorage fs(filename, FileStorage::READ);
+
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg); //listen to rgb image 
 void rosMarkerFinder(cv::Mat rgb); //marker finder
@@ -47,33 +49,16 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg); //listing to
 void initRos(int argc, char** argv,string rgb_topic); //Initializing ROS functions, as subs and ros spin
 
 int main(int argc, char** argv){  
+  fs.open(filename, FileStorage::READ);  //Reading config file
 
-  string rgb_topic;
-  rgb_topic = "camera/rgb/image_raw"; // as default
-  if(argc != 5 && argc !=4){
-    fprintf(stderr, "Usage: %s <camera calibration file> <marker size> <aruco dic> <file where markes will be saved> optional: <rgb_topic> ....bye default : camera/rgb/image_raw \n", argv[0]);
-    exit(0);
-  }
-
-  if(argc == 5){
-    printf(" By defult using camera/rgb/image_raw as ros topic\n");  // if rgb_topic was not set
-  }     
-
-   if(argc == 6){
-     rgb_topic = argv[5];  //if rgb_topic was asked
-  }
-
-  // some paramaters needed by ARUCO
-  float marker_size; 
-  marker_size = stof(argv[2]);
-  markers_save_file = argv[4];
-  marker_finder.markerParam(argv[1] , marker_size, argv[3]);
+  //ArucoParams
+  marker_finder.markerParam(fs["camera_calibration_file"], (float) fs["marker_size"], fs["aruco_dic"]);
 
   for(int k=0; k<=254; k++){ //initializing markers
     all_markers[k].id = 0;
   }
 
-  initRos(argc,argv,rgb_topic); //initializing ROS
+  initRos(argc,argv,fs["rgb_topic"]); //initializing ROS
 
   return 0;
  }
@@ -93,7 +78,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
 }
 
 void rosMarkerFinder(cv::Mat rgb){
-  marker_finder.detectMarkers(rgb, trans_camera_pose);   //Detect and get pose of all aruco markers
+  marker_finder.detectMarkers(rgb, trans_camera_pose,fs["aruco_distance"]);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     all_markers[marker_finder.markers_[j].id].id = marker_finder.markers_[j].id;     //save all markers in a vetor 
@@ -151,7 +136,7 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
   int cont=0;
   if(listen.compare("s") == 0){  //validing if string msg is 's'
     ofstream arq;
-    arq.open(markers_save_file);
+    arq.open(fs["aruco_poses_file"]);
     for(int k=0; k<=254; k++){
       if(all_markers[k].id==0) continue;
         cont ++;

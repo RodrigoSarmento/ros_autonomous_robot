@@ -57,7 +57,7 @@ protected:
 	void setMarkerPosesGlobal(Eigen::Affine3f cam_pose);
 
 	//Set the pose of all detected markers plus a distance in the global ref. frame
-	void setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose);
+	void setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, int aruco_distance);
 
 public:
 	
@@ -79,10 +79,10 @@ public:
 	MarkerFinder();
 	
 	//camera intrinsic parameters and marker size
-	void markerParam(char params[], float size, char aruco_dic[]);
+	void markerParam(string params, float size, string aruco_dic);
 
 	//Detect ARUCO markers. Also sets the poses of all detected markers in the local and global ref. frames
-	void detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose);
+	void detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose, int aruco_distance);
 
 };
 

@@ -14,7 +14,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
 
 ##
 
@@ -26,6 +26,7 @@ add_executable(random_goals random_goals.cpp)
 add_executable(marker_finder_saver marker_finder_saver.cpp)
 add_executable(motion_estimator_ros motion_estimator_ros.cpp)
 add_executable(marker_goal marker_goal.cpp)
+add_executable(teste teste.cpp)
 
 
 
@@ -52,6 +53,7 @@ target_link_libraries(motion_estimator_ros  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RG
                                              ${RGBD_RTK_COMMON} ${RGBD_RTK_VISUALIZATION}
                                              ${RGBD_RTK_MOTION_ESTIMATION} ${catkin_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(marker_goal  ${catkin_LIBRARIES} ${OpenCV_LIBS})
+target_link_libraries(teste  ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 
 
@@ -61,4 +63,5 @@ install(TARGETS autonomous_robot
 		marker_finder_saver
 		motion_estimator_ros
 		marker_goal
+		teste
         RUNTIME DESTINATION bin)

@@ -71,7 +71,7 @@ void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose)
 	}
 }
 
-void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose)
+void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, int aruco_distance)
 {/* This function save the marker pose where the robot need to go.
  It's the sabe aruco pose but with a value added in order to the robot always find a place inside of the map
  In Some situations the aruco marker can be detected outside of the map, since it is oftenly
@@ -103,11 +103,11 @@ void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose)
 		
 		///getting the absolute distance between camera and marker
 		///if their distance is closer then 4meters save marker pose
-		if(sqrt(x + y + z) < 4){
+		if(sqrt(x + y + z) < aruco_distance){
 			V = P * F; //Find the point in the Aruco ref frame
 			marker_point_poses_.push_back(cam_pose.inverse() * V);  //Find the pose point 3d Global ref frame
 		}
-		if(sqrt(x +y +z) >= 4){
+		if(sqrt(x +y +z) >= aruco_distance){
 			markers_.clear();
 		}
 		
@@ -129,7 +129,7 @@ MarkerFinder::MarkerFinder()
 	marker_detector_.setDictionary("ARUCO_MIP_36h12", 0);
 }
 
-void MarkerFinder::markerParam(char params[], float size, char aruco_dic[])
+void MarkerFinder::markerParam(string params, float size, string aruco_dic)
 {//Load params 
 	try{
 		marker_detector_.setDictionary(aruco_dic, 0);
@@ -141,10 +141,10 @@ void MarkerFinder::markerParam(char params[], float size, char aruco_dic[])
 	marker_size_ = size;
 }
 
-void MarkerFinder::detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose)
+void MarkerFinder::detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose, int aruco_distance)
 {//Detect marker and calls setMarkerPointPosesGlobal
 	markers_.clear();
 	marker_detector_.detect(img, markers_, camera_params_, marker_size_);
 	
-	setMarkerPointPosesGlobal(cam_pose);
+	setMarkerPointPosesGlobal(cam_pose,aruco_distance);
 }
