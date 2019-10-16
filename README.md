@@ -11,7 +11,7 @@ Requirements
 - OpenCV: www.opencv.org  (version >= 3.X)
 - PCL: www.pointclouds.org (version 1.8)
 - ROS: http://www.ros.org (version Kinetic)
-- Aruco: https://github.com/fnoop/aruco/tree/2.0.20-git-g(version 2.0.20)
+- Aruco: https://github.com/fnoop/aruco/tree/2.0.20-git-g (version 2.0.20)
 
 It is recommended to install both dependencies from source. The following two links will redirect you to their official tutorials to do so.
 
