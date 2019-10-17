@@ -34,24 +34,25 @@ Eigen::Affine3f pose = Eigen::Affine3f::Identity();
 Eigen::Affine3f trans = Eigen::Affine3f::Identity();
 pcl::PointCloud<PointT>::Ptr prev_cloud(new pcl::PointCloud<PointT>);
 pcl::PointCloud<PointT>::Ptr curr_cloud(new pcl::PointCloud<PointT>);
+string rgb_topic, depth_topic;
 int i=0;
 
 
 void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD); //subscribing rgb and depth image
 void motionEstimator(cv::Mat rgb , cv::Mat depth); //motion estiomator
+void paramLoader();
+
 
 
 int main(int argc, char** argv){
-  string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
-  FileStorage fs(filename, FileStorage::READ);
-  fs.open(filename, FileStorage::READ);
-
-  ros::init(argc, argv, "bag_loader"); //initializing ros
+  paramLoader(); //Loading parameters 
+  
+  ros::init(argc, argv, "motion_estimator"); //initializing ros
   ros::start();
   ros::NodeHandle nh;
 
-  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, fs["rgb_topic"], 1); //subscribing to rgb topic
-  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, fs["depth_topic"], 1);  //subscribing to depth topic
+  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, rgb_topic, 1); //subscribing to rgb topic
+  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, depth_topic, 1);  //subscribing to depth topic
   typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy; //defining which topics will be sync
   message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), rgb_sub,depth_sub); //sync rgb and depth topic in "MySyncPolicy(x)" miliseconds
   sync.registerCallback(boost::bind(&callback, _1, _2));
@@ -60,7 +61,6 @@ int main(int argc, char** argv){
 
   return 0;
 }
-
 void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD){
 
   cv_bridge::CvImageConstPtr cv_ptrRGB;
@@ -123,5 +123,27 @@ void motionEstimator(cv::Mat rgb , cv::Mat depth){
   *prev_cloud = *curr_cloud;
   i++;
 }
-
+void paramLoader(){
+  string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
+  FileStorage fs(filename, FileStorage::READ);
+  fs.open(filename, FileStorage::READ);
+  if(fs.isOpened() == false){
+    cout<<"ConfigFile couldn't be opened, check if your path is right\n";
+    exit(0);
+  }
+   
+  try{ //trying to reading params
+    fs["rgb_topic"] >> rgb_topic;
+    fs["depth_topic"] >> depth_topic;
+    if(rgb_topic.empty() ||  depth_topic.empty()) throw 1;
+    cout<<"Parameters loaded correctly\n\n"<<"rgb_topic: "<<rgb_topic<<endl;
+    cout<<"depth_topic: "<<depth_topic<<endl;
+  }
+  catch(int e){ //using default if any parameter couldn't be loaded
+    cout<<"Coudn't load the params, at least one of the param names is wrong\n\n";
+    cout<<"Using default values\n rgb_topic: camera/rgb/image_raw\n depth_topic: camera/depth/image_raw\n";
+    rgb_topic = "camera/rgb/image_raw";
+    depth_topic = "camera/depth/image_raw";
+  }
+}
 

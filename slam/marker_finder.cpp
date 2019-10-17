@@ -71,7 +71,7 @@ void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose)
 	}
 }
 
-void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, int aruco_distance)
+void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, float aruco_distance)
 {/* This function save the marker pose where the robot need to go.
  It's the sabe aruco pose but with a value added in order to the robot always find a place inside of the map
  In Some situations the aruco marker can be detected outside of the map, since it is oftenly
@@ -141,7 +141,7 @@ void MarkerFinder::markerParam(string params, float size, string aruco_dic)
 	marker_size_ = size;
 }
 
-void MarkerFinder::detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose, int aruco_distance)
+void MarkerFinder::detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose, float aruco_distance)
 {//Detect marker and calls setMarkerPointPosesGlobal
 	markers_.clear();
 	marker_detector_.detect(img, markers_, camera_params_, marker_size_);

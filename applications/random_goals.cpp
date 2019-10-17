@@ -26,7 +26,6 @@ void loadWaypoints(waypoint waypoints[], int n, string waypoints_file); //Load w
 
 waypoint waypoints[200];
 int local = 1;
-
 int attempts = 0;
 int sucess = 0;
 int failed = 0;
