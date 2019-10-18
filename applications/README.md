@@ -94,16 +94,16 @@ But if you want to just send turtlebot to an specify point use
 All programs explanation 
 ------------
 
--ConfigFile.yaml 
+- ConfigFile.yaml 
 
 Some programs need this file to load their params, I'm going to give a brief explanation about those params.
-- camera_calibration_file : It's the camera calibration yaml, it's by default inside ros_autonomous_robot folder and uses the default params of "kinect, kinect_default.yaml".
-- rgb_topic : rgb topic of ROS, by default it is "camera/rgb/image_raw".
-- depth_topic : depth topic of ROS, by default it is "camera/depth/image_raw".
-- aruco_dic : Aruco dictionary, by default it is "ARUCO".
-- aruco_poses_file : File where the aruco markers poses are going to be saved or loaded, by default it is "aruco _poses".
-- aruco_distance : Minimum distance of camera and aruco marker valid, this range is used to decrease error, by default it is "4".
-- aruco_marker_size : Aruco marker size, by default it is "0.1778".
+  - camera_calibration_file : It's the camera calibration yaml, it's by default inside ros_autonomous_robot folder and uses the default params of "kinect, kinect_default.yaml".
+  - rgb_topic : rgb topic of ROS, by default it is "camera/rgb/image_raw".
+  - depth_topic : depth topic of ROS, by default it is "camera/depth/image_raw".
+  - aruco_dic : Aruco dictionary, by default it is "ARUCO".
+  - aruco_poses_file : File where the aruco markers poses are going to be saved or loaded, by default it is "aruco _poses".
+  - aruco_distance : Minimum distance of camera and aruco marker valid, this range is used to decrease error, by default it is "4".
+  - aruco_marker_size : Aruco marker size, by default it is "0.1778".
 
 You can change any of those parameters the way is better for you.
 
