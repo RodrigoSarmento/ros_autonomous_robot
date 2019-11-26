@@ -169,7 +169,7 @@ struct Intrinsics
 				fy_ = 525.0;
 				cx_ = 319.5;
 				cy_ = 239.5;
-				scale_ = 5000;
+				scale_ = 1;
 				k1_ = 0.0;
 				k2_ = 0.0;
 				p1_ = 0.0;

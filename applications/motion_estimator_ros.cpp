@@ -29,7 +29,7 @@ KLTTracker tracker;
 Intrinsics intr(0);
 MotionEstimatorRANSAC motion_estimator(intr);
 //others variables
-//ReconstructionVisualizer visualizer;
+ReconstructionVisualizer visualizer;
 Eigen::Affine3f pose = Eigen::Affine3f::Identity();
 Eigen::Affine3f trans = Eigen::Affine3f::Identity();
 pcl::PointCloud<PointT>::Ptr prev_cloud(new pcl::PointCloud<PointT>);
@@ -41,10 +41,10 @@ int i=0;
 void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD); //subscribing rgb and depth image
 void motionEstimator(cv::Mat rgb , cv::Mat depth); //motion estiomator
 void paramLoader();
-
-
+void minMaxDebug(Mat depth, Mat rgb, double &min, double &max);
 
 int main(int argc, char** argv){
+  //pcl::console::setVerbosityLevel(pcl::console::L_DEBUG);
   paramLoader(); //Loading parameters 
   
   ros::init(argc, argv, "motion_estimator"); //initializing ros
@@ -61,6 +61,10 @@ int main(int argc, char** argv){
 
   return 0;
 }
+/**
+ * Ros Callback, listen to rgb and depth topic
+ * @Params rgb and depth messages 
+ */
 void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD){
 
   cv_bridge::CvImageConstPtr cv_ptrRGB;
@@ -80,16 +84,21 @@ void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageC
     ROS_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
-
-  motionEstimator(cv_ptrRGB->image, cv_ptrD->image);
+  //convert the depth image CV_32 to CV_16UC1
+  Mat  depth_unsigned_short;
+  cv_ptrD->image.convertTo(depth_unsigned_short, CV_16UC1, 1000, 0.0); 
+  //Call motion estimator
+  motionEstimator(cv_ptrRGB->image, depth_unsigned_short);
 }
+/**
+ * Motion estimator using keypoints
+ * @Params rgb and depth images as CV::Mat
+ */
 void motionEstimator(cv::Mat rgb , cv::Mat depth){
 
   *curr_cloud = getPointCloud(rgb, depth, intr);
-
   //track feature points in current frame
   tracker.track(rgb);
-  cout<<i<<endl;
 
   if(i > 0){     //Estimate motion between the current and the previous frame/point clouds
     trans = motion_estimator.estimate(tracker.prev_pts_, prev_cloud, tracker.curr_pts_, curr_cloud);
@@ -105,17 +114,14 @@ void motionEstimator(cv::Mat rgb , cv::Mat depth){
   }
     
   //3D vizualization 
-  /*
   if(i == 0) visualizer.addReferenceFrame(pose, "origin");
   visualizer.addQuantizedPointCloud(curr_cloud, 0.3, pose);
   visualizer.viewReferenceFrame(pose);
   visualizer.viewPointCloud(curr_cloud, pose);
-  visualizer.viewQuantizedPointCloud(curr_cloud, 0.02, pose);
-  //Spin Once = waitkey for 3D window
+  //visualizer.viewQuantizedPointCloud(curr_cloud, 0.02, pose);
   visualizer.spinOnce();
-  */
     
-  depth= depth/5;
+  depth /= 5;
   cv::imshow("OPENCV_WINDOW_RGB", rgb);
   cv::imshow("OPENCV_WINDOW_DEPTH", depth);
   cv::waitKey(1);
@@ -123,6 +129,9 @@ void motionEstimator(cv::Mat rgb , cv::Mat depth){
   *prev_cloud = *curr_cloud;
   i++;
 }
+/**
+ * Loads ConfigFile.yaml params
+ */
 void paramLoader(){
   string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
   FileStorage fs(filename, FileStorage::READ);
@@ -146,4 +155,35 @@ void paramLoader(){
     depth_topic = "camera/depth/image_raw";
   }
 }
+  /**
+   * Get the min and max distance in a depth image
+   * 
+   * @Param Depth image and rgb image as CV::Mat; min(insert as "infinite") and max(insert as 0)  as reference
+   * @Return min and max values as reference
+   */
+void minMaxDebug(Mat depth, Mat rgb, double &min, double &max){
 
+  max=depth.at<unsigned short>(0,0);
+  for(int i = 0; i<depth.rows; i++){
+    for(int j = 0; j<depth.cols; j++){
+      //if(depth.at<unsigned short>(i,j) >=25000 ){
+      //  cv::circle(rgb, Point(j,i), 1, CV_RGB(255,0,0), -1);
+      //}
+      if(depth.at<unsigned short>(i,j) != depth.at<unsigned short>(i,j)){
+        continue;
+      }
+      if(depth.at<unsigned short>(i,j) == 0.0){
+        continue;
+      }
+      if(depth.at<unsigned short>(i,j) < min){
+        min = depth.at<unsigned short>(i,j);
+      }
+
+      if(depth.at<unsigned short>(i,j) > max){
+        max = depth.at<unsigned short>(i,j);
+      }
+
+    }
+  }
+
+}

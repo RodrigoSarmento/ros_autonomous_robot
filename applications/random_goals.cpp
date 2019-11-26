@@ -12,7 +12,7 @@
 
 using namespace std;
 
-struct waypoint{ //Structure that saves a list of waypoints, n is the number of waypoints saved
+struct waypoint{ //Structure used to create a list of waypoints, n is the number of waypoints saved
    int n;
    double x;
    double y;
@@ -23,13 +23,11 @@ bool moveToGoal(double x, double y); //move to a position x y in map
 void randomlygoals(waypoint waypoints[], int n); //Main loop that makes the robot goes to randomly positions
 void loadWaypoints(waypoint waypoints[], int n, string waypoints_file); //Load waypoints in file
 //Variable declarations
-
 waypoint waypoints[200];
 int local = 1;
 int attempts = 0;
 int sucess = 0;
 int failed = 0;
-
 
 int main(int argc, char** argv){
    ros::init(argc, argv, "loop_goals_node"); //initializing node
@@ -51,6 +49,11 @@ int main(int argc, char** argv){
    return 0;
 }
 
+/**
+ * Send a goal to the robot
+ * @Params X and Y position
+ * @Return boolean if the robot sucessed or failed in reach position
+ */
 bool moveToGoal(double x, double y){
    //define a client for to send goal requests to the move_base server through a SimpleActionClient
    actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
@@ -84,8 +87,12 @@ bool moveToGoal(double x, double y){
    if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED) return true;     
    else return false;
 }
-void randomlygoals(waypoint waypoints[], int n){
 
+/**
+ * choose a random known position and send a goal 
+ * @Params list of waypoints, number of waypoints
+ */
+void randomlygoals(waypoint waypoints[], int n){
    int i=0;
    int i_last=-1;
    ofstream arq;
@@ -122,6 +129,10 @@ void randomlygoals(waypoint waypoints[], int n){
       i_last = i;
       }
 }
+
+/**
+ * Load a file of waypoints
+ */
 void loadWaypoints(waypoint waypoints[], int n, string waypoints_file){
    // open and read file
    ifstream load_file;

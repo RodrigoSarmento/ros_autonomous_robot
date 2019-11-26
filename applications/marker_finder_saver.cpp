@@ -28,7 +28,7 @@ using namespace std;
 using namespace cv;
 using namespace aruco;
 
-//where markers id and poses will be saved
+//Struct of markers, a combination of marker id and xyz position
 struct markerFound{
   int id;
   float x_pose;
@@ -38,7 +38,7 @@ struct markerFound{
 
 MarkerFinder marker_finder; //markerfinder
 Eigen::Affine3f trans_camera_pose; //turtlebot pose
-markerFound all_markers[255]; //marker struct
+markerFound all_markers[255]; //list of marker struct
 float aruco_distance=0,aruco_marker_size = 0;
 string camera_calibration_file="", rgb_topic="", aruco_dic="", aruco_poses_file="";
 
@@ -63,7 +63,9 @@ int main(int argc, char** argv){
 
   return 0;
  }
-
+/**
+ * ROS Callback listen to rgb topic
+ */
 void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
   
   cv_bridge::CvImageConstPtr cv_ptrRGB;
@@ -78,6 +80,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
   rosMarkerFinder(cv_ptrRGB->image); //calling marker finder function
 }
 
+/**
+ * Looks foward ARUCO markers and saves in a  list of markerFound structure
+ */
 void rosMarkerFinder(cv::Mat rgb){
   marker_finder.detectMarkers(rgb, trans_camera_pose,aruco_distance);   //Detect and get pose of all aruco markers
 
@@ -97,6 +102,9 @@ void rosMarkerFinder(cv::Mat rgb){
 
 }
 
+/**
+ * Listen to robot odom and calculates camera position related to 0,0 of map
+ */
 void odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 
   Eigen::Vector3f v_robot(msg->pose.pose.position.x,msg->pose.pose.position.y,0); //subscribing turtlebot pose 
@@ -129,8 +137,10 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
   //ROS_INFO("Vel-> Linear: [%f], Angular: [%f]", msg->twist.twist.linear.x,msg->twist.twist.angular.z);
 }
 
+/**
+ * ROS Callback that listen to a string in order to save aruco markers in file
+ */
 void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
-  
   string listen = msg->data.c_str(); //reading msg that was sent by marker_goal topic
   int cont=0;
   if(listen.compare("s") == 0){  //validing if string msg is 's'
@@ -140,6 +150,7 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
       if(all_markers[k].id==0) continue;
         cont ++;
     } //writing in the first line the number of markers that were found
+
     arq<<cont<<endl;
     for(int k=0; k<=254; k++){
       if(all_markers[k].id==0) continue;
@@ -151,6 +162,9 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
     ROS_INFO("[%s] is not a valid input, use 's' to save all markers", msg->data.c_str());
 }
 
+/**
+ * Initialize ROS
+ */
 void initRos(int argc, char** argv, string rgb_topic){
   ros::init(argc, argv, "marker_finder_ros");    //starting ros
   ros::start();
@@ -167,6 +181,10 @@ void initRos(int argc, char** argv, string rgb_topic){
 
   ros::spin();  // leting ROS doing what he needs to do
 }
+
+/**
+ * Load ConfigFile.yaml Params
+ */
 void loadParams(){
   string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
   FileStorage fs(filename,FileStorage::READ);  //Reading config file

@@ -26,10 +26,6 @@ add_executable(random_goals random_goals.cpp)
 add_executable(marker_finder_saver marker_finder_saver.cpp)
 add_executable(motion_estimator_ros motion_estimator_ros.cpp)
 add_executable(marker_goal marker_goal.cpp)
-add_executable(teste teste.cpp)
-
-
-
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
@@ -53,7 +49,6 @@ target_link_libraries(motion_estimator_ros  ${PCL_LIBRARIES} ${RGBD_RTK_IO} ${RG
                                              ${RGBD_RTK_COMMON} ${RGBD_RTK_VISUALIZATION}
                                              ${RGBD_RTK_MOTION_ESTIMATION} ${catkin_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(marker_goal  ${catkin_LIBRARIES} ${OpenCV_LIBS})
-target_link_libraries(teste  ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 
 
@@ -63,5 +58,4 @@ install(TARGETS autonomous_robot
 		marker_finder_saver
 		motion_estimator_ros
 		marker_goal
-		teste
         RUNTIME DESTINATION bin)

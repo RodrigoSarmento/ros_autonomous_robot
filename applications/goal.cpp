@@ -21,10 +21,13 @@ int main(int argc, char** argv){
 
    moveToGoal(x, y); //declare the coordinates of interest 
 
-   
    return 0;
 }
-
+/**
+ * Send a goal to the robot
+ * @Params X and Y position
+ * @Return boolean if the robot sucessed or failed in reach position
+ */
 bool moveToGoal(double xGoal, double yGoal){
 
    //define a client for to send goal requests to the move_base server through a SimpleActionClient

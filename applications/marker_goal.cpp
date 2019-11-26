@@ -8,6 +8,9 @@
 
 using namespace std;
 
+/**
+ * Send string in ROS system that are going to be listen in other programs
+ */
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "marker_goal_node"); //initializing ROS

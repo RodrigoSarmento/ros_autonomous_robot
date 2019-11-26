@@ -69,7 +69,10 @@ int main(int argc, char** argv){
 
   return 0;
  }
-
+/**
+ * Ros Listener to rgb topic
+ * @Params reads a rgb message
+ */
 void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
   
   cv_bridge::CvImageConstPtr cv_ptrRGB;
@@ -84,6 +87,10 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
   markerFinder(cv_ptrRGB->image); //calling marker finder funcition
 }
 
+/**
+ * Detects a aruco marker and draw it on image
+ * @Params rgb image as CV::mat
+ */ 
 void markerFinder(cv::Mat rgb ){
 
   marker_detector.detect(rgb, markers, camera_params, aruco_marker_size);   //Detect and view Aruco markers
@@ -99,7 +106,10 @@ void markerFinder(cv::Mat rgb ){
   cv::waitKey(1);
 
 }
-
+/**
+ * Listen to a marker number and send a goal to the robot goes to marker position
+ * @Params Keeps listen to any string message sent in ROS
+ */
 void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
 
   loadMarkers(aruco_poses_file);//loading markers
@@ -120,7 +130,11 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
   else 
     ROS_INFO("[%s] is not a valid marker", msg->data.c_str());
 }
-
+/**
+ * Send a goal to a position in map
+ * @Params x and y position
+ * @Return boolean if the robot reached or not the position
+ */
 bool moveToGoal(double xGoal, double yGoal){
 
    actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);    //define a client for to send goal requests to the move_base server through a SimpleActionClient
@@ -159,6 +173,9 @@ bool moveToGoal(double xGoal, double yGoal){
       return false;
    }
 }
+/**
+ * Read all know aruco markers
+ */
 
 void loadMarkers(string aruco_poses_file){
   int markers_number = 0, id = 0;
@@ -177,6 +194,9 @@ void loadMarkers(string aruco_poses_file){
 
   }
 }
+/**
+ * Initialize ROS 
+ */
 void initRos(int argc, char** argv, string rgb_topic){
   ros::init(argc, argv, "autonomous_robot");
   ros::start();
@@ -191,6 +211,9 @@ void initRos(int argc, char** argv, string rgb_topic){
   ros::spin();  //"while true"
 }
 
+/**
+ * Load params in ConfigFile.yaml
+ */
 void loadParams(){
   string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
   FileStorage fs(filename,FileStorage::READ);  //Reading config file
