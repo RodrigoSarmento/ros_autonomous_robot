@@ -67,8 +67,6 @@ include_directories(${OpenCV_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_
 link_directories(${PCL_LIBRARY_DIRS})
 add_subdirectory(slam)
 set(RGBD_RTK_SLAM rgbd_rtk_slam)
-add_subdirectory(io)
-set(RGBD_RTK_IO rgbd_rtk_io)
 add_subdirectory(tracking)
 set(RGBD_RTK_TRACKING rgbd_rtk_tracking)
 add_subdirectory(common)

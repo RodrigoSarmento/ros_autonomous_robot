@@ -89,7 +89,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
 
 /**
  * Detects a aruco marker and draw it on image
- * @Params rgb image as CV::mat
+ * @Params rgb image as cv::mat
  */ 
 void markerFinder(cv::Mat rgb ){
 

@@ -92,7 +92,7 @@ void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageC
 }
 /**
  * Motion estimator using keypoints
- * @Params rgb and depth images as CV::Mat
+ * @Params rgb and depth images as cv::Mat
  */
 void motionEstimator(cv::Mat rgb , cv::Mat depth){
 
@@ -158,7 +158,7 @@ void paramLoader(){
   /**
    * Get the min and max distance in a depth image
    * 
-   * @Param Depth image and rgb image as CV::Mat; min(insert as "infinite") and max(insert as 0)  as reference
+   * @Param Depth image and rgb image as cv::Mat; min(insert as "infinite") and max(insert as 0)  as reference
    * @Return min and max values as reference
    */
 void minMaxDebug(Mat depth, Mat rgb, double &min, double &max){

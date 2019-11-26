@@ -1,9 +1,9 @@
-This works of mapping and localization with aruco markers uses two steps. Below is the explanation of how to map.
+This works of mapping and localization with aruco markers use two steps. Below is the explanation of how to map.
 Mapping and Navigation
 ------------
+This is working in progress of a low-cost autonomous robot. The main idea here is to navigate in a known environment using Aruco marker, All my important places are going to have an Aruco marker, in order to the robot to find the marker and to correct the error after it. For example, if a door is an important place, you can put a marker near the door, and send a goal to that place, so the robot will find the marker and reset pose error(I'm still going to add this, I'll consider the pose given by the aruco marker my real pose, not the odom given by the robot).
 
-
-Mapping and navigation can't be done at the same time, first we'll see how to create a map.
+Mapping and navigation can't be done at the same time, first, we'll see how to create a map.
 
 Mapping 
 ------------
@@ -24,13 +24,13 @@ To move turtlebot.
 roslaunch turtlebot_teleop keyboard_teleop.launch
 ```
 
-begin mapping,this launch also launchs kinect.
+begin mapping, this launch also launchs kinect.
 
 ```bash
 roslaunch turtlebot_navigation gmapping_demo.launch
 ```
 
-For vizualize your map when mapping open rviz
+For visualize your map when mapping open rviz
 
 ```bash
 roslaunch turtlebot_rviz_launchers view_navigation.launch
@@ -64,27 +64,27 @@ Open your saved map with amcl.demo.
 roslaunch turtlebot_navigation amcl_demo.launch map_file:=/tmp/my_map.yaml
 ```
 
-Vizualize your map and turtlebot, with rviz, in this step you need to specify where turtlebot is in your map 
-and where is he "looking for", for this in rviz you need to use the tool "2d pose estimation".
+Visualize your map and turtlebot, with rviz, in this step you need to specify where turtlebot is in your map 
+and where is the "looking for", for this in rviz you need to use the tool "2d pose estimation".
 
 ```bash
 roslaunch turtlebot_rviz_launchers view_navigation.launch
 ```
 
-We'll need this for send where we want the turtlebot to go, you can load all markers saved before.
+We'll need this to send where we want the turtlebot to go, you can load all markers saved before.
 
 ```bash
 ./catkin_ws/devel/lib/autonomous_robot/autonomous_robot
 ```
 
-Now, if you want to send turtlebot to an marker
+Now, if you want to send turtlebot to a marker
 
 ```bash
 ./catkin_ws/devel/lib/autonomous_robot/marker_goal
 "valid id"
 ```
 
-But if you want to just send turtlebot to an specify point use
+But if you want to just send turtlebot to a specify point use
 
 ```bash
 ./catkin_ws/devel/lib/autonomous_robot/goal
@@ -102,24 +102,24 @@ Some programs need this file to load their params, I'm going to give a brief exp
   - depth_topic : depth topic of ROS, by default it is "camera/depth/image_raw".
   - aruco_dic : Aruco dictionary, by default it is "ARUCO".
   - aruco_poses_file : File where the aruco markers poses are going to be saved or loaded, by default it is "aruco _poses".
-  - aruco_distance : Minimum distance of camera and aruco marker valid, this range is used to decrease error, by default it is "4".
+  - aruco_distance : Minimum distance of the camera and aruco marker valid, this range is used to decrease error, by default it is "4".
   - aruco_marker_size : Aruco marker size, by default it is "0.1778".
 
 You can change any of those parameters the way is better for you.
 
 - Marker Finder Saver needs "camera_calibration_file", "rgb_topic", "aruco_dic", "aruco_poses_file", "aruco_distance", "aruco_marker_size". Marker Finder Saver is going to find any markers inside the range and save it to a file, you must use this while mapping with a 2d algorithym(i.e gmapping) or with a map already computed.
-To save all markers in order to use after, use the program "marker_goal" and type s, this will save the aruco poses inside "aruco_poses_file".
-This program is only going to save markers closer than 4m in order to resuce error detection in low cost cameras. If you want to change the range, change it inside ConfigFile.yaml >> aruco_distance
+To save all markers to use after, use the program "marker_goal" and type s, this will save the aruco poses inside "aruco_poses_file".
+This program is only going to save markers closer than 4m in order to reduce error detection in low-cost cameras. If you want to change the range, change it inside ConfigFile.yaml >> aruco_distance
 
 
-- Autonomous Robot needs "camera_calibration_file", "rgb_topic", "aruco_dic", "aruco_poses_file", "aruco_marker_size". Autonomous Robot needs to be used with amcl, it will wait for an id marker or a goal to move autonomous and avoiding obstacles, to send the robot to a marker use "marker_goal" and type the number of the marker, and to send the robot to a specificy location(x,y) use "goal".
+- Autonomous Robot needs "camera_calibration_file", "rgb_topic", "aruco_dic", "aruco_poses_file", "aruco_marker_size". Autonomous Robot needs to be used with amcl, it will wait for an id marker or a goal to move autonomous and avoiding obstacles, to send the robot to a marker use "marker_goal" and type the number of the marker, and to send the robot to a specific location(x,y) use "goal".
 
 
 - Motion Estimator ROS needs "rgb_topic", "depth_topic". Motion Estimator ROS will track points and show how the tracked point moved in space.
 
-- Goal will send the robot to a x y position. 
+- Goal will send the robot to a (x, y) position. 
 
-- Marker Goal marker_goal.cpp save all markers id and positions that were saw in any frame when mapping(marker_finder_saver), and while localizating itself(autonomous_robot) sends a goal to move to a marker id.
+- Marker Goal marker_goal.cpp save all markers id and positions that were saw in any frame when mapping(marker_finder_saver), and while localizing itself(autonomous_robot) sends a goal to move to a marker id.
 
 -Random Goals load a file with x and y positions in the following format:
 ```bash
@@ -130,8 +130,8 @@ x2 y2
 ```
 Beings xs and ys double.
 
-Than makes the robot goes to those positions randomly and saving how many attempts and 
-how many succeds and failures at reaching the positions.
+Then makes the robot goes to those positions randomly and saving how many attempts and 
+how many succeeds and failures at reaching the positions.
 
  
 

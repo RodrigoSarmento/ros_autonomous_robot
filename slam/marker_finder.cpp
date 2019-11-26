@@ -33,14 +33,11 @@ using namespace std;
 using namespace cv;
 using namespace aruco;
 
+/**
+ * Finds Marker pose local and add to the list of marker_poses_local
+ */
 void MarkerFinder::setMarkerPosesLocal()
-{// This function finds ther marker pose local(camera ref frame e.g.)
-	marker_poses_local_.clear();
-	for(size_t i = 0; i < markers_.size(); i++)
-	{
-		Mat R = Mat::eye(3, 3, CV_32FC1);// Rotation Matrix
-		Eigen::Affine3f P = Eigen::Affine3f::Identity(); // Aruco Pose
-		
+{// This function finds ther marker pose local(camera re
 		Rodrigues(markers_[i].Rvec, R);
 	
 		P(0,0) = R.at<float>(0,0); P(0,1) = R.at<float>(0,1); P(0,2) = R.at<float>(0,2);
@@ -52,6 +49,10 @@ void MarkerFinder::setMarkerPosesLocal()
 	}
 }
 
+/**
+ * Finds markers and sets its local poses in a list of marker_poses_global
+ * @Params Affine3f camera_pose
+ */
 void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose)
 {// This funcion finds the marker pose global(map ref frame)
 	marker_poses_.clear();
@@ -71,6 +72,10 @@ void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose)
 	}
 }
 
+/**
+ * Set marker point pose global related to a marker position
+ * @Params Affine3f camera pose; float aruco distance
+ * /
 void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, float aruco_distance)
 {/* This function save the marker pose where the robot need to go.
  It's the sabe aruco pose but with a value added in order to the robot always find a place inside of the map
@@ -129,10 +134,20 @@ MarkerFinder::MarkerFinder()
 	marker_detector_.setDictionary("ARUCO_MIP_36h12", 0);
 }
 
+/**
+ * Set marker Params 
+ * @Params string parameters, float aruco size, string aruco dictionry
+ */
 void MarkerFinder::markerParam(string params, float size, string aruco_dic)
 {//Load params 
 	try{
-		marker_detector_.setDictionary(aruco_dic, 0);
+		marker_detector_.setDicf frame e.g.)
+	marker_poses_local_.clear();
+	for(size_t i = 0; i < markers_.size(); i++)
+	{
+		Mat R = Mat::eye(3, 3, CV_32FC1);// Rotation Matrix
+		Eigen::Affine3f P = Eigen::Affine3f::Identity(); // Aruco Pose
+		tionary(aruco_dic, 0);
   	}
   	catch(char param[]){
     	cout << "An exception occurred. Exception Nr. "  << param<<'\n';
@@ -141,6 +156,10 @@ void MarkerFinder::markerParam(string params, float size, string aruco_dic)
 	marker_size_ = size;
 }
 
+/**
+ * Detect Aruco Markers
+ * @Params cv::Mat image, Affine3f camera_pose, float aruco_distance
+ */
 void MarkerFinder::detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose, float aruco_distance)
 {//Detect marker and calls setMarkerPointPosesGlobal
 	markers_.clear();

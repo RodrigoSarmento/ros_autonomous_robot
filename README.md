@@ -9,7 +9,7 @@ Requirements
 ------------
 
 - OpenCV: www.opencv.org  (version >= 3.X)
-- PCL: www.pointclouds.org (version 1.8)
+- PCL: www.pointclouds.org (version 1.8.1)
 - ROS: http://www.ros.org (version Kinetic)
 - Aruco: https://github.com/fnoop/aruco/tree/2.0.20-git-g (version 2.0.20)
 

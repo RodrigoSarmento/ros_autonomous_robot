@@ -47,9 +47,10 @@ using namespace cv;
  * #####################################################
  */
 
+/** Detect Shi-tomasi Keypoints and add them to a temporary buffer
+ */
 void KLTTracker::detect_keypoints()
 {
-	//Detect Shi-Tomasi keypoints and add them to a temporary buffer.
 	//The buffer is erased at the end of add_keypoints()
 	goodFeaturesToTrack(curr_frame_gray_, added_pts_, max_pts_, 0.01, 10);
 	#ifdef DEBUG
@@ -58,6 +59,9 @@ void KLTTracker::detect_keypoints()
 	#endif
 }
 
+/**
+ * add keypoints to a vector of keypoints
+ */
 void KLTTracker::add_keypoints()
 {
 	for(size_t i = 0; i < added_pts_.size(); i++)
@@ -202,6 +206,11 @@ KLTTracker::KLTTracker(int min_pts, int max_pts)
 	max_pts_ = max_pts;
 }
 
+/**
+ * track points in image
+ * @Params cv::Mat 
+ * @Return true or false
+ */
 bool KLTTracker::track(Mat curr_frame)
 {
 	if(curr_frame.channels() == 3){

@@ -67,6 +67,10 @@ ReconstructionVisualizer::ReconstructionVisualizer(const std::string title)
 	                           0.0, -1.0, 0.0); //up;
 }
 
+/**
+ * Add Reference Frame in vizualizer
+ * @Params Affine3f pose, string reference frame name
+ */
 void ReconstructionVisualizer::addReferenceFrame(const Eigen::Affine3f pose, const std::string text)
 {
 	stringstream frame_name;
@@ -81,6 +85,10 @@ void ReconstructionVisualizer::addReferenceFrame(const Eigen::Affine3f pose, con
 	viewer_->addText3D(text, pos, 0.025, 1, 1, 1, frame_name.str());
 }
 
+/**
+ * Add Point cloud
+ * @Params pcl::PointCloud, Affine3f pose
+ */
 void ReconstructionVisualizer::addPointCloud(const pcl::PointCloud<PointT>::Ptr cloud, const Eigen::Affine3f pose)
 {
 	//Create a new point cloud
@@ -100,6 +108,10 @@ void ReconstructionVisualizer::addPointCloud(const pcl::PointCloud<PointT>::Ptr 
 	//pcl::visualization::PointCloudColorHandlerCustom<PointT> blue(curr_cloud, 0, 0, 255);
 }
 
+/**
+ * Add a quantized point cloud
+ * @Params pcl::PointCloud, float radius, Affine3f pose
+ */
 void ReconstructionVisualizer::addQuantizedPointCloud(const pcl::PointCloud<PointT>::Ptr cloud, const float radius, const Eigen::Affine3f pose)
 {
 	//Create a new point cloud
@@ -127,6 +139,10 @@ void ReconstructionVisualizer::viewReferenceFrame(const Eigen::Affine3f pose)
 	viewer_->addText3D("cam", pos, 0.025, 1, 1, 1, "cam_text");
 }
 
+/**
+ * Create a point cloud vizualize
+ * @Params pcl::PointCloud, Affine3f pose
+ */
 void ReconstructionVisualizer::viewPointCloud(const pcl::PointCloud<PointT>::Ptr cloud, const Eigen::Affine3f pose)
 {
 	//Create a new point cloud
@@ -142,6 +158,10 @@ void ReconstructionVisualizer::viewPointCloud(const pcl::PointCloud<PointT>::Ptr
 	}
 }
 
+/**
+ * View a quantized point cloud
+ * @Params pcl::PointCloud, float radius, Affine3f pose
+ */
 void ReconstructionVisualizer::viewQuantizedPointCloud(const pcl::PointCloud<PointT>::Ptr cloud, const float radius, const Eigen::Affine3f pose)
 {
 	//Create a new point cloud

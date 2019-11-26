@@ -29,6 +29,11 @@
 using namespace std;
 using namespace cv;
 
+/**
+ * Valid a pointT
+ * @Param PointT
+ * @Return true or false
+ */
 bool is_valid(PointT p)
 {
 	if(isnan(p.x) || isnan(p.y) || isnan(p.z))
@@ -41,6 +46,11 @@ bool is_valid(PointT p)
 	}
 }
 
+/**
+ * Get 3D information from 2D image
+ * @Params Point2f, PointCloud
+ * @Return PointT
+ */
 PointT get3Dfrom2D(const Point2f point, const pcl::PointCloud<PointT>::Ptr dense_cloud)
 {
 	//Grab 2D coord. of the feature
@@ -63,6 +73,11 @@ PointT get3Dfrom2D(const Point2f point, const pcl::PointCloud<PointT>::Ptr dense
 	return pt;
 }
 
+/**
+ * Get point cloud 
+ * @Params cv::Mat rgb and depth, Instrinsics
+ * @Return pcl::PointCloud
+ */ 
 pcl::PointCloud<PointT> getPointCloud(const Mat rgb, const Mat depth, const Intrinsics intr)
 {
 	float fx = intr.fx_, fy = intr.fy_;
