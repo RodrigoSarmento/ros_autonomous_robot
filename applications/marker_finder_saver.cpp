@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <vector>
+#include <string>
 ///ROS
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -17,6 +18,7 @@
 #include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
 #include "nav_msgs/Odometry.h"
+#include <tf/transform_broadcaster.h>
 ///Opencv
 #include <opencv2/highgui/highgui.hpp>
 //Aruco
@@ -40,7 +42,8 @@ MarkerFinder marker_finder; //markerfinder
 Eigen::Affine3f trans_camera_pose; //turtlebot pose
 markerFound all_markers[255]; //list of marker struct
 float aruco_distance=0,aruco_marker_size = 0;
-string camera_calibration_file="", rgb_topic="", aruco_dic="", aruco_poses_file="";
+string camera_calibration_file="", rgb_topic="", aruco_dic="", aruco_poses_file="",aruco_tf = "";
+int id = -1;
 
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg); //listen to rgb image 
@@ -49,6 +52,7 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& msg); //listen turtlebot o
 void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg); //listing to marker_goal topic
 void initRos(int argc, char** argv,string rgb_topic); //Initializing ROS functions, as subs and ros spin
 void loadParams(); //Load ConfigFile Params
+void publishArucoTF(); 
 
 int main(int argc, char** argv){  
 
@@ -87,16 +91,19 @@ void rosMarkerFinder(cv::Mat rgb){
   marker_finder.detectMarkers(rgb, trans_camera_pose,aruco_distance);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
-    all_markers[marker_finder.markers_[j].id].id = marker_finder.markers_[j].id;     //save all markers in a vetor 
-    all_markers[marker_finder.markers_[j].id].x_pose = marker_finder.marker_point_poses_[j](0,0); //save marker position 
-    all_markers[marker_finder.markers_[j].id].y_pose = marker_finder.marker_point_poses_[j](1,0);
-    all_markers[marker_finder.markers_[j].id].z_pose = marker_finder.marker_point_poses_[j](2,0);
+    id = marker_finder.markers_[j].id;
+    all_markers[id].id = id;     //save all markers in a vetor 
+    all_markers[id].x_pose = marker_finder.marker_point_poses_[j](0,0); //save marker position 
+    all_markers[id].y_pose = marker_finder.marker_point_poses_[j](1,0);
+    all_markers[id].z_pose = marker_finder.marker_point_poses_[j](2,0);
     marker_finder.markers_[j].draw(rgb, Scalar(0,0,255), 1);   //drawing markers in rgb image
     CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_); //drawing axis on window
     stringstream ss;
-    ss << "m" << marker_finder.markers_[j].id;
+    ss << "m" << id;
+
   }
-   
+  publishArucoTF();
+
   cv::imshow("OPENCV_WINDOW", rgb);  //showing rgb image
   cv::waitKey(1);
 
@@ -216,5 +223,19 @@ void loadParams(){
     aruco_poses_file = "aruco_poses";
     aruco_distance = 4;
     aruco_marker_size = 0.1778;
+  }
+}
+/**
+ * THis function publishes the aruco markers tf related to 0,0
+ */
+void publishArucoTF(){
+  tf::TransformBroadcaster br;
+  tf::Transform transform;
+  for (int j = 1; j < 255; j++){
+    if(all_markers[j].id == 0) continue;
+    transform.setOrigin(tf::Vector3(all_markers[j].x_pose, all_markers[j].y_pose, all_markers[j].z_pose));
+    transform.setRotation(tf::Quaternion(0,0,0,1));
+    aruco_tf = "aruco" + to_string(j);
+    br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", aruco_tf));
   }
 }

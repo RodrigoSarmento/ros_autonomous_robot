@@ -32,6 +32,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   sensor_msgs
+  tf
   std_msgs
 )
 
@@ -42,6 +43,7 @@ message(STATUS "Build directory: " ${PROJECT_BINARY_DIR})
 #opencv
 find_package(VTK 7.1 REQUIRED)
 find_package(OpenCV 3.3.1 )
+
 find_package(Eigen )
 message(STATUS "OpenCV version: " ${OpenCV_VERSION})
 message(STATUS "VTK version: " ${VTK_VERSION})
