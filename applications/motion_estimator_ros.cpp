@@ -14,6 +14,7 @@
 #include <opencv2/core/core.hpp>
 #include <Eigen/Geometry>
 ////our include
+#include <config_loader.h>
 #include <geometry.h>
 #include <rgbd_loader.h>
 #include <klt_tracker.h>
@@ -25,6 +26,7 @@ using namespace cv;
 
 ///rgbd_rtk variables
 KLTTracker tracker;
+ConfigLoader Loader;
 Intrinsics intr(0);
 MotionEstimatorRANSAC motion_estimator(intr);
 //others variables
@@ -44,14 +46,14 @@ void minMaxDebug(Mat depth, Mat rgb, double &min, double &max);
 
 int main(int argc, char** argv){
   //pcl::console::setVerbosityLevel(pcl::console::L_DEBUG);
-  paramLoader(); //Loading parameters 
+  Loader.loadParams("../../../src/ros_autonomous_robot/ConfigFile.yaml"); //Load config file param
   
   ros::init(argc, argv, "motion_estimator"); //initializing ros
   ros::start();
   ros::NodeHandle nh;
 
-  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, rgb_topic, 1); //subscribing to rgb topic
-  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, depth_topic, 1);  //subscribing to depth topic
+  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, Loader.rgb_topic_, 1); //subscribing to rgb topic
+  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, Loader.depth_topic_, 1);  //subscribing to depth topic
   typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy; //defining which topics will be sync
   message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), rgb_sub,depth_sub); //sync rgb and depth topic in "MySyncPolicy(x)" miliseconds
   sync.registerCallback(boost::bind(&callback, _1, _2));
@@ -128,32 +130,7 @@ void motionEstimator(cv::Mat rgb , cv::Mat depth){
   *prev_cloud = *curr_cloud;
   i++;
 }
-/**
- * Loads ConfigFile.yaml params
- */
-void paramLoader(){
-  string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
-  FileStorage fs(filename, FileStorage::READ);
-  fs.open(filename, FileStorage::READ);
-  if(fs.isOpened() == false){
-    cout<<"ConfigFile couldn't be opened, check if your path is right\n";
-    exit(0);
-  }
-   
-  try{ //trying to reading params
-    fs["rgb_topic"] >> rgb_topic;
-    fs["depth_topic"] >> depth_topic;
-    if(rgb_topic.empty() ||  depth_topic.empty()) throw 1;
-    cout<<"Parameters loaded correctly\n\n"<<"rgb_topic: "<<rgb_topic<<endl;
-    cout<<"depth_topic: "<<depth_topic<<endl;
-  }
-  catch(int e){ //using default if any parameter couldn't be loaded
-    cout<<"Coudn't load the params, at least one of the param names is wrong\n\n";
-    cout<<"Using default values\n rgb_topic: camera/rgb/image_raw\n depth_topic: camera/depth/image_raw\n";
-    rgb_topic = "camera/rgb/image_raw";
-    depth_topic = "camera/depth/image_raw";
-  }
-}
+
   /**
    * Get the min and max distance in a depth image
    * 

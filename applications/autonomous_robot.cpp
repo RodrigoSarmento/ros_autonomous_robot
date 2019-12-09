@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#include <config_loader.h>
 ///ROS
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
@@ -30,6 +31,7 @@ MarkerDetector marker_detector;
 CameraParameters camera_params;
 vector<Marker> markers;
 
+ConfigLoader Loader;
 
 struct markerFound{
   int id;
@@ -41,9 +43,6 @@ struct markerFound{
 string listen_id;
 int listen_id_to_int;
 markerFound all_markers[255];
-float aruco_marker_size = 0;
-string camera_calibration_file="", rgb_topic="", aruco_dic="", aruco_poses_file="";
-
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg); //subscribe to rgb image
 void markerFinder(cv::Mat rgb); //marker finder
@@ -55,15 +54,15 @@ void loadParams(); //Load ConfigFile Params
 
 
 int main(int argc, char** argv){    
-  loadParams();//Loading Params
+  Loader.loadParams("../../../src/ros_autonomous_robot/ConfigFile.yaml"); //Load config file param
 
-  camera_params.readFromXMLFile(camera_calibration_file);    //aruco params 
-  marker_detector.setDictionary(aruco_dic, 0);
+  camera_params.readFromXMLFile(Loader.camera_calibration_file_);    //aruco params 
+  marker_detector.setDictionary(Loader.aruco_dic_, 0);
 
   for(int k=0; k<=254; k++){ //initializing markers
     all_markers[k].id = 0;
   }
-  initRos(argc,argv,rgb_topic);
+  initRos(argc,argv,Loader.rgb_topic_);
 
   return 0;
  }
@@ -91,7 +90,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
  */ 
 void markerFinder(cv::Mat rgb ){
 
-  marker_detector.detect(rgb, markers, camera_params, aruco_marker_size);   //Detect and view Aruco markers
+  marker_detector.detect(rgb, markers, camera_params, Loader.aruco_marker_size_);   //Detect and view Aruco markers
 
   for (size_t j = 0; j < markers.size(); j++){
     markers[j].draw(rgb, Scalar(0,0,255), 1);   //drawing markers in rgb image
@@ -110,7 +109,7 @@ void markerFinder(cv::Mat rgb ){
  */
 void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
 
-  loadMarkers(aruco_poses_file);//loading markers
+  loadMarkers(Loader.aruco_poses_file_);//loading markers
   listen_id = msg->data.c_str();
   string::size_type sz; 
 
@@ -207,39 +206,4 @@ void initRos(int argc, char** argv, string rgb_topic){
   image_transport::Subscriber rgb_sub = it.subscribe(rgb_topic, 1, imageCallback);    //subscribing to rgb image
 
   ros::spin();  //"while true"
-}
-
-/**
- * Load params in ConfigFile.yaml
- */
-void loadParams(){
-  string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
-  FileStorage fs(filename,FileStorage::READ);  //Reading config file
-  if(fs.isOpened() == false){
-    cout<<"ConfigFile couldn't be opened, check if your path is right\n";
-    exit(0);
-  }
-  try{//Loading Params
-    fs["camera_calibration_file"] >> camera_calibration_file;
-    fs["rgb_topic"] >> rgb_topic;
-    fs["aruco_dic"] >> aruco_dic;
-    fs["aruco_poses_file"] >> aruco_poses_file;
-    fs["aruco_marker_size"] >> aruco_marker_size;
-    //looking if any of the params was not loaded
-    if(camera_calibration_file.empty() || rgb_topic.empty() || aruco_dic.empty() || aruco_poses_file.empty() || aruco_marker_size == 0) throw 1;
-   
-    cout<<"Params load successfully\n"<<"camera_calibration_file: "<<camera_calibration_file<<endl;
-    cout<<"rgb_topic: "<<rgb_topic<<endl<<"aruco_dic: "<<aruco_dic<<endl<<"aruco_pose_file: "<<aruco_poses_file<<endl;
-    cout<<"aruco_marker_size: "<<aruco_marker_size<<endl;
-  }
-  catch(int e){//If a param was not loaded, use the default
-    cout<<"Coudn't load the params, at least one of the param names is wrong\n\n";
-    cout<<"Using default values\ncamera_calibration_file: \"kinect_default.yaml\"\nrgb_topic: \"camera/rgb/image_raw\"\n";
-    cout<<"aruco_dic: \"ARUCO\"\naruco_pose_file: \"aruco_poses\"\naruco_marker_size: 0.1778\n";
-    camera_calibration_file = "kinect_default.yaml";
-    rgb_topic = "camera/rgb/image_raw";
-    aruco_dic = "ARUCO";
-    aruco_poses_file = "aruco_poses";
-    aruco_marker_size = 0.1778;
-  }
 }

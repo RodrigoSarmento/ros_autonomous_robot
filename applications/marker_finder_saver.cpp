@@ -4,6 +4,8 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <config_loader.h>
+
 ///ROS
 #include "ros/ros.h"
 #include "std_msgs/String.h"
@@ -26,6 +28,8 @@ using namespace std;
 using namespace cv;
 using namespace aruco;
 
+ConfigLoader Loader;
+
 //Struct of markers, a combination of marker id and xyz position
 struct markerFound{
   int id;
@@ -37,8 +41,7 @@ struct markerFound{
 MarkerFinder marker_finder; //markerfinder
 Eigen::Affine3f trans_camera_pose; //turtlebot pose
 markerFound all_markers[255]; //list of marker struct
-float aruco_distance=0,aruco_marker_size = 0;
-string camera_calibration_file="", rgb_topic="", aruco_dic="", aruco_poses_file="",aruco_tf = "";
+string aruco_tf = "";
 int id = -1;
 
 
@@ -52,14 +55,14 @@ void publishArucoTF();
 
 int main(int argc, char** argv){  
 
-  loadParams();
-  marker_finder.markerParam(camera_calibration_file, aruco_marker_size, aruco_dic);
+  Loader.loadParams("../../../src/ros_autonomous_robot/ConfigFile.yaml"); //Load config file param
+  marker_finder.markerParam(Loader.camera_calibration_file_, Loader.aruco_marker_size_, Loader.aruco_dic_);
 
   for(int k=0; k<=254; k++){ //initializing markers
     all_markers[k].id = 0;
   }
 
-  initRos(argc,argv,rgb_topic); //initializing ROS
+  initRos(argc,argv,Loader.rgb_topic_); //initializing ROS
 
   return 0;
  }
@@ -84,7 +87,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
  * Looks foward ARUCO markers and saves in a  list of markerFound structure
  */
 void rosMarkerFinder(cv::Mat rgb){
-  marker_finder.detectMarkers(rgb, trans_camera_pose,aruco_distance);   //Detect and get pose of all aruco markers
+  marker_finder.detectMarkers(rgb, trans_camera_pose,Loader.aruco_distance_);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     id = marker_finder.markers_[j].id;
@@ -148,7 +151,7 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
   int cont=0;
   if(listen.compare("s") == 0){  //validing if string msg is 's'
     ofstream arq;
-    arq.open(aruco_poses_file);
+    arq.open(Loader.aruco_poses_file_);
     for(int k=0; k<=254; k++){
       if(all_markers[k].id==0) continue;
         cont ++;
@@ -185,42 +188,6 @@ void initRos(int argc, char** argv, string rgb_topic){
   ros::spin();  // leting ROS doing what he needs to do
 }
 
-/**
- * Load ConfigFile.yaml Params
- */
-void loadParams(){
-  string filename = "../../../src/ros_autonomous_robot/ConfigFile.yaml";
-  FileStorage fs(filename,FileStorage::READ);  //Reading config file
-  if(fs.isOpened() == false){
-    cout<<"ConfigFile couldn't be opened, check if your path is right\n";
-    exit(0);
-  }
-  try{//Loading Params
-    fs["camera_calibration_file"] >> camera_calibration_file;
-    fs["rgb_topic"] >> rgb_topic;
-    fs["aruco_dic"] >> aruco_dic;
-    fs["aruco_poses_file"] >> aruco_poses_file;
-    fs["aruco_distance"] >> aruco_distance;
-    fs["aruco_marker_size"] >> aruco_marker_size;
-    //looking if any of the params was not loaded
-    if(camera_calibration_file.empty() || rgb_topic.empty() || aruco_dic.empty() || aruco_poses_file.empty() || aruco_distance == 0  || aruco_marker_size == 0) throw 1;
-   
-    cout<<"Parameters loaded correctly\n\n"<<"camera_calibration_file: "<<camera_calibration_file<<endl;
-    cout<<"rgb_topic: "<<rgb_topic<<endl<<"aruco_dic: "<<aruco_dic<<endl<<"aruco_pose_file: "<<aruco_poses_file<<endl;
-    cout<<"aruco_distance: "<<aruco_distance<<endl<<"aruco_marker_size: "<<aruco_marker_size<<endl;
-  }
-  catch(int e){//If a param was not loaded, use the default
-    cout<<"Coudn't load the params, at least one of the param names is wrong\n\n";
-    cout<<"Using default values\ncamera_calibration_file: \"kinect_default.yaml\"\nrgb_topic: \"camera/rgb/image_raw\"\n";
-    cout<<"aruco_dic: \"ARUCO\"\naruco_pose_file: \"aruco_poses\"\naruco_distance: 4\naruco_marker_size: 0.1778\n";
-    camera_calibration_file = "kinect_default.yaml";
-    rgb_topic = "camera/rgb/image_raw";
-    aruco_dic = "ARUCO";
-    aruco_poses_file = "aruco_poses";
-    aruco_distance = 4;
-    aruco_marker_size = 0.1778;
-  }
-}
 /**
  * THis function publishes the aruco markers tf related to 0,0
  */
