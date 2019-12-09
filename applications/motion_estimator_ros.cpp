@@ -1,12 +1,11 @@
-///ROS
 #include <cstdio>
 #include <cstdlib>
+///ROS
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 #include <cv_bridge/cv_bridge.h>
-#include <sensor_msgs/image_encodings.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <sensor_msgs/Image.h>
 ///Opencv

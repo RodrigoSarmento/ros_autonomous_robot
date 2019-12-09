@@ -5,17 +5,13 @@
 #include <vector>
 #include <string>
 ///ROS
-#include <move_base_msgs/MoveBaseAction.h>
-#include <actionlib/client/simple_action_client.h>
 #include "ros/ros.h"
 #include "std_msgs/String.h"
 #include <cv_bridge/cv_bridge.h>
-#include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/time_synchronizer.h>
-#include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
 #include "nav_msgs/Odometry.h"
 #include <tf/transform_broadcaster.h>

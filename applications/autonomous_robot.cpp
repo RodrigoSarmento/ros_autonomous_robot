@@ -12,14 +12,12 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/time_synchronizer.h>
-#include <sensor_msgs/image_encodings.h>
 #include <sensor_msgs/Image.h>
 ///Opencv
 #include <opencv2/highgui/highgui.hpp>
 //Aruco
 #include <aruco/aruco.h>
 #include <aruco/cvdrawingutils.h>
-
 
 
 using namespace std;

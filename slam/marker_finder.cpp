@@ -119,7 +119,7 @@ void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, float aru
 			marker_point_poses_.push_back(cam_pose.inverse() * V);  //Find the pose point 3d Global ref frame
 		}
 		if(sqrt(x +y +z) >= aruco_distance){
-			markers_.clear();
+			continue;
 		}
 		
 		
