@@ -1,0 +1,17 @@
+{
+    "settings": {
+        "files.associations": {
+            "fstream": "cpp",
+            "iostream": "cpp"
+        },
+        "python.autoComplete.extraPaths": [
+            "/home/sarmento/orbslam2/devel/lib/python2.7/dist-packages",
+            "/opt/ros/kinetic/lib/python2.7/dist-packages"
+        ]
+    },
+    "folders": [
+        {
+            "path": "/home/sarmento/ros_guide_robot_ws/src/ros_autonomous_robot"
+        }
+    ]
+}

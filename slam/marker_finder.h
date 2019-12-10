@@ -51,10 +51,10 @@ protected:
 	float marker_size_;
 		
 	//Set the pose of all detected markers w.r.t. the local/camera ref. frame
-	void setMarkerPosesLocal();
+	void setMarkerPosesLocal(float aruco_distance);
 	
 	//Set the pose of all detected markers w.r.t. the global ref. frame
-	void setMarkerPosesGlobal(Eigen::Affine3f cam_pose);
+	void setMarkerPosesGlobal(Eigen::Affine3f cam_pose, float aruco_distance);
 
 	//Set the pose of all detected markers plus a distance in the global ref. frame
 	void setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, float aruco_distance);

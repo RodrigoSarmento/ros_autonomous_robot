@@ -87,7 +87,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
  * Looks foward ARUCO markers and saves in a  list of markerFound structure
  */
 void rosMarkerFinder(cv::Mat rgb){
-  marker_finder.detectMarkers(rgb, trans_camera_pose,Loader.aruco_distance_);   //Detect and get pose of all aruco markers
+  marker_finder.detectMarkers(rgb, trans_camera_pose,Loader.aruco_minimum_distance_);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     id = marker_finder.markers_[j].id;
