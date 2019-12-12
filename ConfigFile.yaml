@@ -6,13 +6,13 @@
 # aruco_dic: "ARUCO"
 # aruco_poses_file: "aruco_poses"
 # marker_size: 0.1778
-# aruco_minimum_distance: 4(-1 means infinite )
+# aruco_max_distance: 4(-1 means infinite )
 camera_calibration_file: "../../../src/ros_autonomous_robot/kinect_default.yaml"
-rgb_topic: "camera/rgb/image_raw"
+rgb_topic: ""
 depth_topic: "camera/depth/image_raw"
 aruco_dic: "ARUCO"
 aruco_poses_file: "aruco_poses"
-aruco_minimum_distance: 4
+aruco_max_distance: 4
 aruco_marker_size: 0.1778
 
 

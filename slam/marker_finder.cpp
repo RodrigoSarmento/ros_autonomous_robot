@@ -36,7 +36,7 @@ using namespace aruco;
 /**
  * Finds Marker pose local and add to the list of marker_poses_local
  */
-void MarkerFinder::setMarkerPosesLocal(float aruco_minimum_distance)
+void MarkerFinder::setMarkerPosesLocal(float aruco_max_distance)
 {// This function finds ther marker pose local(camera related)
 	marker_poses_.clear();
 	double x=0,y=0,z=0;
@@ -57,16 +57,16 @@ void MarkerFinder::setMarkerPosesLocal(float aruco_minimum_distance)
 		z = pow(P(2,3),2);
 
 		///getting the absolute distance between camera and marker
-		///if their distance is closer then aruco_minimum_distance save marker pose
-		if(aruco_minimum_distance == -1){//infinite
+		///if their distance is closer then aruco_max_distance save marker pose
+		if(aruco_max_distance == -1){//infinite
 			marker_poses_local_.push_back(P);
 			continue ;
 		}
-		if(sqrt(x + y + z) < aruco_minimum_distance){//aruco is closer than the minimum distance
+		if(sqrt(x + y + z) < aruco_max_distance){//aruco is closer than the minimum distance
 			marker_poses_local_.push_back(P);  //Find the pose point 3d Global ref frame
 			continue;
 		}
-		if(sqrt(x +y +z) >= aruco_minimum_distance){//aruco is further than the minimum distance
+		if(sqrt(x +y +z) >= aruco_max_distance){//aruco is further than the minimum distance
 			continue;
 		}	}
 }
@@ -75,7 +75,7 @@ void MarkerFinder::setMarkerPosesLocal(float aruco_minimum_distance)
  * Finds markers and sets its local poses in a list of marker_poses_global
  * @Params Affine3f camera_pose
  */
-void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose, float aruco_minimum_distance)
+void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose, float aruco_max_distance)
 {// This funcion finds the marker pose global(map ref frame)
 	double x=0,y=0,z=0;
 
@@ -98,16 +98,16 @@ void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose, float aruco_mi
 		z = pow(P(2,3),2);
 
 		///getting the absolute distance between camera and marker
-		///if their distance is closer then aruco_minimum_distance save marker pose
-		if(aruco_minimum_distance == -1){//infinite
+		///if their distance is closer then aruco_max_distance save marker pose
+		if(aruco_max_distance == -1){//infinite
 			marker_poses_.push_back(cam_pose.inverse() *P );
 			continue ;
 		}
-		if(sqrt(x + y + z) < aruco_minimum_distance){//aruco is closer than the minimum distance
+		if(sqrt(x + y + z) < aruco_max_distance){//aruco is closer than the minimum distance
 			marker_poses_.push_back(cam_pose.inverse() * P);  //Find the pose point 3d Global ref frame
 			continue;
 		}
-		if(sqrt(x +y +z) >= aruco_minimum_distance){//aruco is further than the minimum distance
+		if(sqrt(x +y +z) >= aruco_max_distance){//aruco is further than the minimum distance
 			continue;
 		}
 	}
@@ -117,7 +117,7 @@ void MarkerFinder::setMarkerPosesGlobal(Eigen::Affine3f cam_pose, float aruco_mi
  * Set marker point pose global related to a marker position
  * @Params Affine3f camera pose; float aruco distance
  */
-void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, float aruco_minimum_distance)
+void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, float aruco_max_distance)
 {/* This function save the marker pose where the robot need to go.
  It's the same aruco pose but with a value added in order to the robot always find a place inside of the map
  In Some situations the aruco marker can be detected outside of the map, since it is oftenly
@@ -148,18 +148,18 @@ void MarkerFinder::setMarkerPointPosesGlobal(Eigen::Affine3f cam_pose, float aru
 		z = pow(P(2,3),2);
 		
 		///getting the absolute distance between camera and marker
-		///if their distance is closer then aruco_minimum_distance save marker pose
-		if(aruco_minimum_distance == -1){//infinite
+		///if their distance is closer then aruco_max_distance save marker pose
+		if(aruco_max_distance == -1){//infinite
 			V = P * F; //Find the point in the Aruco ref frame
 			marker_point_poses_.push_back(cam_pose.inverse() *V );
 			continue ;
 		}
-		if(sqrt(x + y + z) < aruco_minimum_distance){//aruco is closer than the minimum distance
+		if(sqrt(x + y + z) < aruco_max_distance){//aruco is closer than the minimum distance
 			V = P * F; //Find the point in the Aruco ref frame
 			marker_point_poses_.push_back(cam_pose.inverse() * V);  //Find the pose point 3d Global ref frame
 			continue;
 		}
-		if(sqrt(x +y +z) >= aruco_minimum_distance){//aruco is further than the minimum distance
+		if(sqrt(x +y +z) >= aruco_max_distance){//aruco is further than the minimum distance
 			continue;
 		}
 	}
@@ -197,12 +197,12 @@ void MarkerFinder::markerParam(string params, float size, string aruco_dic)
 
 /**
  * Detect Aruco Markers
- * @Params cv::Mat image, Affine3f camera_pose, float aruco_minimum_distance
+ * @Params cv::Mat image, Affine3f camera_pose, float aruco_max_distance
  */
-void MarkerFinder::detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose, float aruco_minimum_distance)
+void MarkerFinder::detectMarkers(const cv::Mat img, Eigen::Affine3f cam_pose, float aruco_max_distance)
 {//Detect marker and calls setMarkerPointPosesGlobal
 	markers_.clear();
 	marker_detector_.detect(img, markers_, camera_params_, marker_size_);
 	
-	setMarkerPointPosesGlobal(cam_pose,aruco_minimum_distance);
+	setMarkerPointPosesGlobal(cam_pose,aruco_max_distance);
 }

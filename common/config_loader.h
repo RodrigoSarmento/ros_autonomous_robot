@@ -14,7 +14,7 @@ class ConfigLoader{
         string depth_topic_;
         string aruco_dic_;
         string aruco_poses_file_;
-        float aruco_minimum_distance_;
+        float aruco_max_distance_;
         double aruco_marker_size_;
 
     void loadParams(string filename);
