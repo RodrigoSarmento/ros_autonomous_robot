@@ -97,7 +97,6 @@ void randomlygoals(waypoint waypoints[], int n){
    int i_last=-1;
    ofstream arq;
    arq.open("attemps.txt");
-   char x='e';
       while(true){
          i = rand() % waypoints[0].n;//sorting a randomly position
          if(i == i_last){ //making sure that the robot is not trying to go to where he already is

@@ -26,9 +26,8 @@ using namespace cv;
 
 ///rgbd_rtk variables
 KLTTracker tracker;
-ConfigLoader Loader;
 Intrinsics intr(0);
-MotionEstimatorRANSAC motion_estimator(intr);
+MotionEstimatorRANSAC motion_estimator(intr, 0.008, 0.8);
 //others variables
 ReconstructionVisualizer visualizer;
 Eigen::Affine3f pose = Eigen::Affine3f::Identity();
@@ -41,25 +40,17 @@ int i=0;
 
 void callback(const sensor_msgs::ImageConstPtr& msgRGB,const sensor_msgs::ImageConstPtr& msgD); //subscribing rgb and depth image
 void motionEstimator(cv::Mat rgb , cv::Mat depth); //motion estiomator
-void paramLoader();
 void minMaxDebug(Mat depth, Mat rgb, double &min, double &max);
+void initRos(int argc, char** argv, string rgb_topic, string depth_topic);
 
 int main(int argc, char** argv){
   //pcl::console::setVerbosityLevel(pcl::console::L_DEBUG);
-  Loader.loadParams("../../../src/ros_autonomous_robot/ConfigFile.yaml"); //Load config file param
-  
-  ros::init(argc, argv, "motion_estimator"); //initializing ros
-  ros::start();
-  ros::NodeHandle nh;
+  string rgb_topic, depth_topic;
+  ConfigLoader param_loader("../../../src/ros_autonomous_robot/config_files/ConfigFile.yaml"); //Load config file param
+  param_loader.checkAndGetString("rgb_topic", rgb_topic);
+  param_loader.checkAndGetString("rgb_topic", depth_topic);
 
-  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, Loader.rgb_topic_, 1); //subscribing to rgb topic
-  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, Loader.depth_topic_, 1);  //subscribing to depth topic
-  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy; //defining which topics will be sync
-  message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), rgb_sub,depth_sub); //sync rgb and depth topic in "MySyncPolicy(x)" miliseconds
-  sync.registerCallback(boost::bind(&callback, _1, _2));
-
-  ros::spin();
-
+  initRos(argc, argv, rgb_topic, depth_topic);
   return 0;
 }
 /**
@@ -161,5 +152,19 @@ void minMaxDebug(Mat depth, Mat rgb, double &min, double &max){
 
     }
   }
+
+}
+void initRos(int argc, char** argv, string rgb_topic, string depth_topic){
+  ros::init(argc, argv, "motion_estimator"); //initializing ros
+  ros::start();
+  ros::NodeHandle nh;
+
+  message_filters::Subscriber<sensor_msgs::Image> rgb_sub(nh, rgb_topic, 1); //subscribing to rgb topic
+  message_filters::Subscriber<sensor_msgs::Image> depth_sub(nh, depth_topic, 1);  //subscribing to depth topic
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> MySyncPolicy; //defining which topics will be sync
+  message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(20), rgb_sub,depth_sub); //sync rgb and depth topic in "MySyncPolicy(x)" miliseconds
+  sync.registerCallback(boost::bind(&callback, _1, _2));
+
+  ros::spin();
 
 }

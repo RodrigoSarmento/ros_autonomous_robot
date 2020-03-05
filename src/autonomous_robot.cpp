@@ -30,8 +30,8 @@ using namespace aruco;
 MarkerDetector marker_detector;
 CameraParameters camera_params;
 vector<Marker> markers;
-
-ConfigLoader Loader;
+float aruco_marker_size;
+string aruco_poses_file;
 
 struct markerFound{
   int id;
@@ -54,15 +54,22 @@ void loadParams(); //Load ConfigFile Params
 
 
 int main(int argc, char** argv){    
-  Loader.loadParams("../../../src/ros_autonomous_robot/ConfigFile.yaml"); //Load config file param
+  string camera_calibration_file, aruco_dic, rgb_topic;
 
-  camera_params.readFromXMLFile(Loader.camera_calibration_file_);    //aruco params 
-  marker_detector.setDictionary(Loader.aruco_dic_, 0);
+  ConfigLoader param_loader("../../../src/ros_autonomous_robot/config_files/ConfigFile.yaml"); //Load config file param
+  param_loader.checkAndGetString("camera_calibration_file", camera_calibration_file);
+  param_loader.checkAndGetString("aruco_dic", aruco_dic);
+  param_loader.checkAndGetString("rgb_topic", rgb_topic);
+  param_loader.checkAndGetString("aruco_poses_file", aruco_poses_file);
+  param_loader.checkAndGetFloat("aruco_marker_size", aruco_marker_size);
+  
+  camera_params.readFromXMLFile(camera_calibration_file);    //aruco params 
+  marker_detector.setDictionary(aruco_dic);
 
   for(int k=0; k<=254; k++){ //initializing markers
     all_markers[k].id = 0;
   }
-  initRos(argc,argv,Loader.rgb_topic_);
+  initRos(argc,argv,rgb_topic);
 
   return 0;
  }
@@ -90,7 +97,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
  */ 
 void markerFinder(cv::Mat rgb ){
 
-  marker_detector.detect(rgb, markers, camera_params, Loader.aruco_marker_size_);   //Detect and view Aruco markers
+  marker_detector.detect(rgb, markers, camera_params, aruco_marker_size);   //Detect and view Aruco markers
 
   for (size_t j = 0; j < markers.size(); j++){
     markers[j].draw(rgb, Scalar(0,0,255), 1);   //drawing markers in rgb image
@@ -109,7 +116,7 @@ void markerFinder(cv::Mat rgb ){
  */
 void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
 
-  loadMarkers(Loader.aruco_poses_file_);//loading markers
+  loadMarkers(aruco_poses_file);//loading markers
   listen_id = msg->data.c_str();
   string::size_type sz; 
 

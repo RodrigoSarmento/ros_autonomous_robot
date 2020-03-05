@@ -13,8 +13,7 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native ")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
-
+set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
 project(autonomous_robot)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
@@ -36,50 +35,32 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
-##rtk
+##ros_autonomous_robot
 message(STATUS "Project source directory: " ${PROJECT_SOURCE_DIR})
 message(STATUS "Build directory: " ${PROJECT_BINARY_DIR})
 
 #opencv
 find_package(VTK 7.1 REQUIRED)
 find_package(OpenCV 3.3.1 )
+find_package(rgbd_rtk)
+find_package(Eigen)
 
-find_package(Eigen )
+message(STATUS "Rgbd_rtk version: " ${rgbd_rtk_VERSION})
 message(STATUS "OpenCV version: " ${OpenCV_VERSION})
 message(STATUS "VTK version: " ${VTK_VERSION})
 #pcl
 find_package(PCL 1.8 REQUIRED PATHS "/usr/local/share/pcl-1.8")
 message(STATUS "PCL Version " ${PCL_VERSION})
 #aruco
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
-find_package(aruco 2.0 REQUIRED)
-if(aruco_FOUND)
-	message(STATUS "Aruco found")
-	message(STATUS "Aruco INCLUDES: " ${aruco_INCLUDE_DIRS})
-	message(STATUS "Aruco LIBS: " ${aruco_LIBS})
-else()
-	message(FATAL_ERROR "Error: Aruco was not found in your system")
-endif()
+find_package(aruco REQUIRED)
 
 catkin_package(
 
 )
 
-include_directories(${OpenCV_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} common io tracking motion_estimation visualization slam)
+include_directories(${OpenCV_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${rgbd_rtk_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
-add_subdirectory(slam)
-set(RGBD_RTK_SLAM rgbd_rtk_slam)
-add_subdirectory(tracking)
-set(RGBD_RTK_TRACKING rgbd_rtk_tracking)
-add_subdirectory(common)
-set(RGBD_RTK_COMMON rgbd_rtk_common)
-add_subdirectory(visualization)
-set(RGBD_RTK_VISUALIZATION rgbd_rtk_visualization)
-add_subdirectory(motion_estimation)
-set(RGBD_RTK_MOTION_ESTIMATION rgbd_rtk_motion_estimation)
-add_subdirectory(applications)
-
-
+add_subdirectory(src)
 
 
 ## System dependencies are found with CMake's conventions

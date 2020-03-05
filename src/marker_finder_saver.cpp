@@ -4,8 +4,6 @@
 #include <fstream>
 #include <vector>
 #include <string>
-#include <config_loader.h>
-
 ///ROS
 #include "ros/ros.h"
 #include "std_msgs/String.h"
@@ -19,16 +17,22 @@
 #include <tf/transform_broadcaster.h>
 ///Opencv
 #include <opencv2/highgui/highgui.hpp>
-//Aruco
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
+//RGBD_RTK
+#include <config_loader.h>
 #include <marker_finder.h>
+#include <geometry.h>
+#include <rgbd_loader.h>
+#include <klt_tracker.h>
+#include <motion_estimator_ransac.h>
+#include <reconstruction_visualizer.h>
+
 
 using namespace std;
 using namespace cv;
 using namespace aruco;
 
-ConfigLoader Loader;
 
 //Struct of markers, a combination of marker id and xyz position
 struct markerFound{
@@ -39,9 +43,10 @@ struct markerFound{
 };
 
 MarkerFinder marker_finder; //markerfinder
+float aruco_marker_size, aruco_max_distance;
 Eigen::Affine3f trans_camera_pose; //turtlebot pose
 markerFound all_markers[255]; //list of marker struct
-string aruco_tf = "";
+string aruco_tf = "", aruco_poses_file;
 int id = -1;
 
 
@@ -54,15 +59,23 @@ void loadParams(); //Load ConfigFile Params
 void publishArucoTF(); 
 
 int main(int argc, char** argv){  
+  string camera_calibration_file, aruco_dic, rgb_topic;
 
-  Loader.loadParams("../../../src/ros_autonomous_robot/ConfigFile.yaml"); //Load config file param
-  marker_finder.markerParam(Loader.camera_calibration_file_, Loader.aruco_marker_size_, Loader.aruco_dic_);
+  ConfigLoader param_loader("../../../src/ros_autonomous_robot/config_files/ConfigFile.yaml"); //Load config file param
+  param_loader.checkAndGetString("camera_calibration_file", camera_calibration_file);
+  param_loader.checkAndGetString("aruco_dic", aruco_dic);
+  param_loader.checkAndGetString("rgb_topic", rgb_topic);
+  param_loader.checkAndGetString("aruco_poses_file", aruco_poses_file);
+  param_loader.checkAndGetFloat("aruco_marker_size", aruco_marker_size);
+  param_loader.checkAndGetFloat("aruco_max_distance", aruco_max_distance);
+  
+  marker_finder.markerParam(camera_calibration_file, aruco_marker_size, aruco_dic);
 
   for(int k=0; k<=254; k++){ //initializing markers
     all_markers[k].id = 0;
   }
 
-  initRos(argc,argv,Loader.rgb_topic_); //initializing ROS
+  initRos(argc,argv,rgb_topic); //initializing ROS
 
   return 0;
  }
@@ -87,7 +100,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
  * Looks foward ARUCO markers and saves in a  list of markerFound structure
  */
 void rosMarkerFinder(cv::Mat rgb){
-  marker_finder.detectMarkers(rgb, trans_camera_pose,Loader.aruco_max_distance_);   //Detect and get pose of all aruco markers
+  marker_finder.detectMarkers(rgb, trans_camera_pose,aruco_max_distance);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     id = marker_finder.markers_[j].id;
@@ -151,7 +164,7 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
   int cont=0;
   if(listen.compare("s") == 0){  //validing if string msg is 's'
     ofstream arq;
-    arq.open(Loader.aruco_poses_file_);
+    arq.open(aruco_poses_file);
     for(int k=0; k<=254; k++){
       if(all_markers[k].id==0) continue;
         cont ++;
