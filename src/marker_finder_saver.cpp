@@ -104,6 +104,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
  * @param cv::Mat image
  */
 void rosMarkerFinder(cv::Mat rgb){
+  
   marker_finder.detectMarkers(rgb, trans_camera_pose,aruco_max_distance, poses_format);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
