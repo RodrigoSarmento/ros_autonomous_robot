@@ -34,7 +34,6 @@ target_link_libraries(autonomous_robot  ${PCL_LIBRARIES} ${RGBD_RTK_LIBRARIES} $
                                          ${OpenCV_LIBS} ${aruco_LIBS})
 target_link_libraries(marker_finder_saver  ${PCL_LIBRARIES} ${RGBD_RTK_LIBRARIES} ${catkin_LIBRARIES}
                                             ${OpenCV_LIBS} ${aruco_LIBS})
-message("rgbd_rtk_libraries dentro da minha rola" ${RGBD_RTK_LIBRARIES})
 target_link_libraries(motion_estimator_ros  ${PCL_LIBRARIES} ${RGBD_RTK_LIBRARIES} ${catkin_LIBRARIES} ${OpenCV_LIBS} )
 
 
