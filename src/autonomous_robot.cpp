@@ -74,7 +74,6 @@ int main(int argc, char** argv){
   param_loader.checkAndGetString("aruco_dic", aruco_dic);
   param_loader.checkAndGetString("rgb_topic", rgb_topic);
   param_loader.checkAndGetString("aruco_poses_file", aruco_poses_file);
-  param_loader.checkAndGetFloat("aruco_close_distance", aruco_close_distance);
   param_loader.checkAndGetFloat("aruco_marker_size", aruco_marker_size);
   param_loader.checkAndGetFloat("aruco_max_distance", aruco_max_distance);
 
@@ -105,25 +104,10 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
   publishArucoTF();
 
   Eigen::Affine3f not_used;
-  marker_finder.detectMarkers(rgb, not_used, aruco_max_distance, "local");   //Detect and get pose of all aruco markers
+  marker_finder.detectMarkers(rgb, not_used, aruco_max_distance, 0.0, "local");   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     if(marker_finder.markers_[j].id != marker_id) continue;
-
-    double x,y,z;
-	  x = pow(marker_finder.marker_poses_local_[j](0,0),2);
-		y = pow(marker_finder.marker_poses_local_[j](1,0),2);
-		z = pow(marker_finder.marker_poses_local_[j](2,0),2);
-    double distance = sqrt(x + y + z);
-    printf("x: %f, y: %f, z: %f, distance: %f\n", x,y,z,distance);
-
-    if(distance >= aruco_close_distance){
-      //keep approaching
-    } else{
-      cout<<"entrou aqui\n";
-      MoveBaseClient ac1("cancel_goal", true);
-      ac1.cancelAllGoals();
-    }
 
     marker_finder.markers_[j].draw(rgb, Scalar(0,0,255), 1);   //drawing markers in rgb image
     CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_); //drawing axis on window
@@ -156,7 +140,6 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
     ROS_INFO("[%s] is a valid marker", msg->data.c_str());
     marker_id = marker_id_asked;
     moveToGoal(all_markers[marker_id_asked].x_pose, all_markers[marker_id_asked].y_pose);
-    
   }
 
   else 
