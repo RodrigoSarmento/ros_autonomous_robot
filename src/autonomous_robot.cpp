@@ -19,6 +19,7 @@
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/time_synchronizer.h>
 #include <sensor_msgs/Image.h>
+#include <tf/transform_broadcaster.h>
 ///Opencv
 #include <Eigen/Geometry>
 #include <Eigen/Dense>
@@ -40,6 +41,7 @@ vector<Marker> markers;
 float aruco_marker_size, aruco_max_distance, aruco_close_distance;
 string aruco_poses_file;
 cv::Mat rgb;
+tf::TransformBroadcaster *br;
 
 struct markerFound{
   int id;
@@ -62,6 +64,7 @@ bool moveToGoal(double xGoal, double yGoal); //moving autonomous to a place
 void loadMarkers(string aruco_poses_file); //open all_markers.txt
 void initRos(int argc, char** argv, string rgb_topic);
 void loadParams(); //Load ConfigFile Params
+void publishArucoTF(); //Publish tf
 
 int main(int argc, char** argv){    
   string camera_calibration_file, aruco_dic, rgb_topic;
@@ -99,6 +102,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
     return;
   }
   rgb = cv_ptrRGB->image;
+  publishArucoTF();
 
   Eigen::Affine3f not_used;
   marker_finder.detectMarkers(rgb, not_used, aruco_max_distance, "local");   //Detect and get pose of all aruco markers
@@ -220,6 +224,24 @@ void loadMarkers(string aruco_poses_file){
     all_markers[id].z_pose = z;
   }
 }
+
+/**
+ * This function publishes the aruco markers tf related to 0,0
+ */
+void publishArucoTF(){
+  br = new tf::TransformBroadcaster();
+  tf::Transform transform;
+  for(int j = 1; j < 255; j++){
+    if(all_markers[j].id == 0) continue; //if marker not found continue 
+    //set the xyz and rotation pose
+    transform.setOrigin(tf::Vector3(all_markers[j].x_pose, all_markers[j].y_pose, all_markers[j].z_pose));
+    transform.setRotation(tf::Quaternion(0,0,0,1));
+    string aruco_tf = "aruco" + to_string(j); //set aruco name 
+    //broadcasting to tf related to odom 
+    br->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", aruco_tf));
+  }
+}
+
 /**
  * Initialize ROS 
  */

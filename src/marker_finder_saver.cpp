@@ -46,7 +46,7 @@ MarkerFinder marker_finder; //markerfinder
 float aruco_marker_size, aruco_max_distance;
 Eigen::Affine3f trans_camera_pose; //turtlebot pose
 markerFound all_markers[255]; //list of marker struct
-string aruco_tf = "", aruco_poses_file, poses_format;
+string aruco_poses_file, poses_format;
 int id = -1;
 tf::TransformBroadcaster *br;
 
@@ -188,6 +188,23 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
 }
 
 /**
+ * This function publishes the aruco markers tf related to 0,0
+ */
+void publishArucoTF(){
+  br = new tf::TransformBroadcaster();
+  tf::Transform transform;
+  for(int j = 1; j < 255; j++){
+    if(all_markers[j].id == 0) continue; //if marker not found continue 
+    //set the xyz and rotation pose
+    transform.setOrigin(tf::Vector3(all_markers[j].x_pose, all_markers[j].y_pose, all_markers[j].z_pose));
+    transform.setRotation(tf::Quaternion(0,0,0,1));
+    string aruco_tf = "aruco" + to_string(j); //set aruco name 
+    //broadcasting to tf related to odom 
+    br->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", aruco_tf));
+  }
+}
+
+/**
  * Initialize ROS
  */
 void initRos(int argc, char** argv, string rgb_topic){
@@ -205,22 +222,4 @@ void initRos(int argc, char** argv, string rgb_topic){
   ros::Subscriber odom_sub = nn.subscribe("odom", 1000, odomCallback); //subscribing to odom topic
 
   ros::spin();  // leting ROS doing what he needs to do
-}
-
-/**
- * This function publishes the aruco markers tf related to 0,0
- */
-void publishArucoTF(){
-  br = new tf::TransformBroadcaster();
-  tf::Transform transform;
-  for(int j = 1; j < 255; j++){
-    if(all_markers[j].id == 0) continue; //if marker not found continue 
-    //set the xyz and rotation pose
-    transform.setOrigin(tf::Vector3(all_markers[j].x_pose, all_markers[j].y_pose, all_markers[j].z_pose));
-    transform.setRotation(tf::Quaternion(0,0,0,1));
-    aruco_tf = "aruco" + to_string(j); //set aruco name 
-    //broadcasting to tf related to odom 
-    br->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", aruco_tf));
-  }
-
 }
