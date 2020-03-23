@@ -1,7 +1,7 @@
 The program works in two steps, mapping, and localization. Below is the explanation of how to use it.
 Mapping and Navigation
 ------------
-This is a working in progress of a low-cost autonomous robot. The main idea here is to navigate in a known environment using Aruco marker, All my important places are going to have an Aruco marker, in order to the robot to find the marker and to correct the error after it. For example, if a door is an important place, you can put a marker near the door, and send a goal to that place, so the robot will find the marker and reset pose error(I'm still going to add this, I'll consider the pose given by the aruco marker my real pose, not the odom given by the robot).
+This is a working in progress of a low-cost autonomous robot. The main idea here is to navigate in a known environment using Aruco marker and lidar. We need to put aruco markers in important places of the environment, The robot will use the marker to correct it's error position. For example, if a door is an important place for you navigation, you can put a marker near the door, and if you want the robot to go to that door the robot will go and correct it's pose when reaching tha place.(I'm still going to add this, I'll consider the pose given by the aruco marker my real pose, not the odom given by the robot).
 
 Mapping and navigation can't be done at the same time, first, we'll see how to create a map.
 
