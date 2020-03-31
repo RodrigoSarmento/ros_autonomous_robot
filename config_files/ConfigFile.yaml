@@ -15,6 +15,11 @@ aruco_dic: "ARUCO"
 aruco_poses_file: "aruco_poses"
 aruco_max_distance: -1
 aruco_marker_size: 0.1778
+<<<<<<< HEAD
 aruco_close_distance: 1.5
+=======
+poses_format: "point_global"
+aruco_close_distance: 1
+>>>>>>> 6f29b12b0768b3656280be9dcfd3174333943479
 
 
