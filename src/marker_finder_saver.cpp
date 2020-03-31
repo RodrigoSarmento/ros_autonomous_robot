@@ -66,7 +66,7 @@ int main(int argc, char** argv){
   param_loader.checkAndGetString("camera_calibration_file", camera_calibration_file);
   param_loader.checkAndGetString("aruco_dic", aruco_dic);
   param_loader.checkAndGetString("rgb_topic", rgb_topic);
-    param_loader.checkAndGetFloat("aruco_close_distance", aruco_close_distance);
+  param_loader.checkAndGetFloat("aruco_close_distance", aruco_close_distance);
   param_loader.checkAndGetString("aruco_poses_file", aruco_poses_file);
   param_loader.checkAndGetString("poses_format", poses_format);
   param_loader.checkAndGetFloat("aruco_marker_size", aruco_marker_size);
@@ -106,7 +106,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
  */
 void rosMarkerFinder(cv::Mat rgb){
   
-  marker_finder.detectMarkers(rgb, trans_camera_pose,aruco_max_distance, aruco_close_distance, poses_format);   //Detect and get pose of all aruco markers
+  marker_finder.detectMarkersPointPosesGlobal(rgb, trans_camera_pose,aruco_max_distance, aruco_close_distance);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     id = marker_finder.markers_[j].id;

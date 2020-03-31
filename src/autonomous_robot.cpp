@@ -103,8 +103,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
   rgb = cv_ptrRGB->image;
   publishArucoTF();
 
-  Eigen::Affine3f not_used;
-  marker_finder.detectMarkers(rgb, not_used, aruco_max_distance, 0.0, "local");   //Detect and get pose of all aruco markers
+  marker_finder.detectMarkersPosesLocal(rgb, aruco_max_distance);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     if(marker_finder.markers_[j].id != marker_id) continue;
@@ -174,8 +173,7 @@ bool moveToGoal(double xGoal, double yGoal){
 
   ROS_INFO("Sending goal location ...");
   ac.sendGoal(goal);
-
-  /*ac.waitForResult();
+  ac.waitForResult();
 
   if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED){
     ROS_INFO("You have reached the destination");
@@ -185,7 +183,6 @@ bool moveToGoal(double xGoal, double yGoal){
     ROS_INFO("The robot failed to reach the destination");
     return false;
   }
-  */
 }
 /**
  * Read all know aruco markers
