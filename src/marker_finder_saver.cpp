@@ -40,15 +40,20 @@ struct markerFound{
   float x_pose;
   float y_pose;
   float z_pose;
+  float x_rotation;
+  float y_rotation;
+  float z_rotation;
+  float w_rotation;
 };
 
 MarkerFinder marker_finder; //markerfinder
 float aruco_marker_size, aruco_max_distance, aruco_close_distance;
 Eigen::Affine3f trans_camera_pose; //turtlebot pose
 markerFound all_markers[255]; //list of marker struct
-string aruco_poses_file, poses_format;
+string aruco_poses_file;
 int id = -1;
-tf::TransformBroadcaster *br;
+tf::TransformBroadcaster *br; //Broadcaster for tf aruco
+Eigen::Quaternionf q_aruco;//Quaternion of aruco pose
 
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg); //listen to rgb image 
@@ -68,7 +73,6 @@ int main(int argc, char** argv){
   param_loader.checkAndGetString("rgb_topic", rgb_topic);
   param_loader.checkAndGetFloat("aruco_close_distance", aruco_close_distance);
   param_loader.checkAndGetString("aruco_poses_file", aruco_poses_file);
-  param_loader.checkAndGetString("poses_format", poses_format);
   param_loader.checkAndGetFloat("aruco_marker_size", aruco_marker_size);
   param_loader.checkAndGetFloat("aruco_max_distance", aruco_max_distance);
   
@@ -106,15 +110,20 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
  */
 void rosMarkerFinder(cv::Mat rgb){
   
-  marker_finder.detectMarkersPointPosesGlobal(rgb, trans_camera_pose,aruco_max_distance, aruco_close_distance);   //Detect and get pose of all aruco markers
+  marker_finder.detectMarkersPointPoses(rgb, trans_camera_pose,aruco_max_distance, aruco_close_distance);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     id = marker_finder.markers_[j].id;
     all_markers[id].id = id;     //save all markers in a vetor 
-    all_markers[id].x_pose = marker_finder.marker_point_poses_[j](0,0); //save marker position 
-    all_markers[id].y_pose = marker_finder.marker_point_poses_[j](1,0);
-    all_markers[id].z_pose = marker_finder.marker_point_poses_[j](2,0);
-    
+    all_markers[id].x_pose = marker_finder.marker_point_poses_[j](0,3); //save marker position 
+    all_markers[id].y_pose = marker_finder.marker_point_poses_[j](1,3);
+    all_markers[id].z_pose = marker_finder.marker_point_poses_[j](2,3);
+    q_aruco = marker_finder.marker_point_poses_[j].rotation();
+    all_markers[id].x_rotation = q_aruco.x();
+    all_markers[id].y_rotation = q_aruco.y();
+    all_markers[id].z_rotation = q_aruco.z();
+    all_markers[id].w_rotation = q_aruco.w();
+
     marker_finder.markers_[j].draw(rgb, Scalar(0,0,255), 1);   //drawing markers in rgb image
     CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_); //drawing axis on window
     stringstream ss;
@@ -136,7 +145,6 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 
   Eigen::Vector3f v_robot(msg->pose.pose.position.x,msg->pose.pose.position.y,0); //subscribing turtlebot pose 
   Eigen::Quaternionf q_robot((msg->pose.pose.orientation.w), msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, (msg->pose.pose.orientation.z)); ///subscribing turtlebot orientation pose 
-  
 
   Eigen::Matrix3f R_robot = q_robot.normalized().toRotationMatrix();   // convert a quaternion to a 3x3 rotation matrix:
 
@@ -147,7 +155,6 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr& msg){
 
   Eigen::Vector3f v_camera(-0.087, -0.0125, 0.2972); //subscribing turtlebot pose 
   Eigen::Quaternionf q_camera(0.5, -0.5, 0.5, -0.5); ///subscribing turtlebot orientation pose 
-
 
   Eigen::Matrix3f R_camera =  q_camera.normalized().toRotationMatrix();   // convert a quaternion to a 3x3 rotation matrix:
 
@@ -181,7 +188,9 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
     arq<<cont<<endl;
     for(int k=0; k<=254; k++){
       if(all_markers[k].id==0) continue;
-        arq<<all_markers[k].id<<" "<<all_markers[k].x_pose<<" "<<all_markers[k].y_pose <<" "<<all_markers[k].z_pose << endl;   //saving all markers in "all_markers.txt"
+        arq<<all_markers[k].id<<" "<<all_markers[k].x_pose<<" "<<all_markers[k].y_pose 
+          <<" "<<all_markers[k].z_pose<<" "<<all_markers[k].x_rotation<<" "<<all_markers[k].y_rotation
+          <<" "<<all_markers[k].z_rotation<<" "<<all_markers[k].w_rotation<<endl;   //saving all markers in "all_markers.txt"
     }
     ROS_INFO("Markers Saved");
   }
