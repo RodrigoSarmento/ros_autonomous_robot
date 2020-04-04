@@ -42,12 +42,17 @@ float aruco_marker_size, aruco_max_distance, aruco_close_distance;
 string aruco_poses_file;
 cv::Mat rgb;
 tf::TransformBroadcaster *br;
+Eigen::Affine3f I = Eigen::Affine3f::Identity();
 
 struct markerFound{
   int id;
   float x_pose;
   float y_pose;
   float z_pose;
+  float x_rotation;
+  float y_rotation;
+  float z_rotation;
+  float w_rotation;
 };
 
 string listen_id;
@@ -60,7 +65,7 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 void imageCallback(const sensor_msgs::ImageConstPtr& msg); //subscribe to rgb image
 void markerGetCloser(int marker_id); //Getting close to a marker
 void listenKeyboardGoal(const std_msgs::String::ConstPtr& msg); //listening keyboard input for navigation
-bool moveToGoal(double xGoal, double yGoal); //moving autonomous to a place
+bool moveToGoal(double xGoal, double yGoal, double x_r, double y_r, double z_r, double w_r); //moving autonomous to a place
 void loadMarkers(string aruco_poses_file); //open all_markers.txt
 void initRos(int argc, char** argv, string rgb_topic);
 void loadParams(); //Load ConfigFile Params
@@ -103,7 +108,8 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
   rgb = cv_ptrRGB->image;
   publishArucoTF();
 
-  marker_finder.detectMarkersPosesLocal(rgb, aruco_max_distance);   //Detect and get pose of all aruco markers
+  //Detect and get pose of all aruco markers
+  marker_finder.detectMarkersPoses(rgb, I, aruco_max_distance); 
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     if(marker_finder.markers_[j].id != marker_id) continue;
@@ -138,18 +144,19 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
   if(all_markers[marker_id_asked].id != 0){   //validing a marker(a marker is valid if it was detected in any frame)
     ROS_INFO("[%s] is a valid marker", msg->data.c_str());
     marker_id = marker_id_asked;
-    moveToGoal(all_markers[marker_id_asked].x_pose, all_markers[marker_id_asked].y_pose);
+    moveToGoal(all_markers[marker_id_asked].x_pose, all_markers[marker_id_asked].y_pose,
+      all_markers[marker_id_asked].x_rotation, all_markers[marker_id_asked].y_rotation,
+      all_markers[marker_id_asked].z_rotation, all_markers[marker_id_asked].w_rotation);
   }
 
-  else 
-    ROS_INFO("[%s] is not a valid marker", msg->data.c_str());
+  else ROS_INFO("[%s] is not a valid marker", msg->data.c_str());
 }
 /**
  * Send a goal to a position in map
  * @Params x and y position
  * @Return boolean if the robot reached or not the position
  */
-bool moveToGoal(double xGoal, double yGoal){
+bool moveToGoal(double xGoal, double yGoal, double x_r, double y_r, double z_r, double w_r){
   //define a client for to send goal requests to the move_base server through a SimpleActionClient
   MoveBaseClient ac("move_base", true);
 
@@ -166,10 +173,10 @@ bool moveToGoal(double xGoal, double yGoal){
   goal.target_pose.pose.position.x =  xGoal;
   goal.target_pose.pose.position.y =  yGoal;
   goal.target_pose.pose.position.z =  0.0;
-  goal.target_pose.pose.orientation.x = 0.0;
-  goal.target_pose.pose.orientation.y = 0.0;
-  goal.target_pose.pose.orientation.z = 0.0;
-  goal.target_pose.pose.orientation.w = 1.0;
+  goal.target_pose.pose.orientation.x = x_r;
+  goal.target_pose.pose.orientation.y = y_r;
+  goal.target_pose.pose.orientation.z = z_r;
+  goal.target_pose.pose.orientation.w = w_r;
 
   ROS_INFO("Sending goal location ...");
   ac.sendGoal(goal);
@@ -190,18 +197,22 @@ bool moveToGoal(double xGoal, double yGoal){
 
 void loadMarkers(string aruco_poses_file){
   int markers_number = 0, id = 0;
-  float x = 0, y = 0, z = 0;
+  float x = 0, y = 0, z = 0, x_r = 0, y_r = 0, z_r = 0, w_r = 0;
   fstream arq;
   arq.open(aruco_poses_file);//open .txt
   arq >> markers_number;
 
   //saving markers information in vector "all_markers"
   for(int i = 0; i < markers_number; i++){
-    arq >> id >> x >> y >>z;
+    arq >> id >> x >> y >> z >> x_r >> y_r >> z_r >> w_r;
     all_markers[id].id = id;
     all_markers[id].x_pose = x;
     all_markers[id].y_pose = y;
     all_markers[id].z_pose = z;
+    all_markers[id].x_rotation = x_r;
+    all_markers[id].y_rotation = y_r;
+    all_markers[id].z_rotation = z_r;
+    all_markers[id].w_rotation = w_r;
   }
 }
 

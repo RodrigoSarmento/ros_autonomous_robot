@@ -7,7 +7,7 @@
 # aruco_poses_file: "aruco_poses"
 # marker_size: 0.1778
 # aruco_max_distance: 4(-1 means infinite )
-# aruco_close_distance: 2(meters)
+# aruco_close_distance: 1(meters)
 camera_calibration_file: "../../../src/ros_autonomous_robot/kinect_default.yaml"
 rgb_topic: "camera/rgb/image_raw"
 depth_topic: "camera/depth/image_raw"
@@ -15,11 +15,7 @@ aruco_dic: "ARUCO"
 aruco_poses_file: "aruco_poses"
 aruco_max_distance: -1
 aruco_marker_size: 0.1778
-<<<<<<< HEAD
-aruco_close_distance: 1.5
-=======
-poses_format: "point_global"
 aruco_close_distance: 1
->>>>>>> 6f29b12b0768b3656280be9dcfd3174333943479
+
 
 
