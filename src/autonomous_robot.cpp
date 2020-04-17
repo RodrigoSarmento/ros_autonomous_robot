@@ -53,6 +53,9 @@ struct markerFound{
   float y_rotation;
   float z_rotation;
   float w_rotation;
+  Eigen::Vector3f vetor_pose;
+  Eigen::Quaternionf vetor_orientacao;
+  Eigen::Affine3f affine3f_pose;
 };
 
 string listen_id;
@@ -65,7 +68,7 @@ typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseCl
 void imageCallback(const sensor_msgs::ImageConstPtr& msg); //subscribe to rgb image
 void markerGetCloser(int marker_id); //Getting close to a marker
 void listenKeyboardGoal(const std_msgs::String::ConstPtr& msg); //listening keyboard input for navigation
-bool moveToGoal(double xGoal, double yGoal, double x_r, double y_r, double z_r, double w_r); //moving autonomous to a place
+bool moveToGoal(Eigen::Quaternionf vetor_orientacao,  Eigen::Affine3f affine3f_pose); //moving autonomous to a place
 void loadMarkers(string aruco_poses_file); //open all_markers.txt
 void initRos(int argc, char** argv, string rgb_topic);
 void loadParams(); //Load ConfigFile Params
@@ -79,6 +82,7 @@ int main(int argc, char** argv){
   param_loader.checkAndGetString("aruco_dic", aruco_dic);
   param_loader.checkAndGetString("rgb_topic", rgb_topic);
   param_loader.checkAndGetString("aruco_poses_file", aruco_poses_file);
+  param_loader.checkAndGetFloat("aruco_close_distance", aruco_close_distance);
   param_loader.checkAndGetFloat("aruco_marker_size", aruco_marker_size);
   param_loader.checkAndGetFloat("aruco_max_distance", aruco_max_distance);
 
@@ -144,9 +148,7 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
   if(all_markers[marker_id_asked].id != 0){   //validing a marker(a marker is valid if it was detected in any frame)
     ROS_INFO("[%s] is a valid marker", msg->data.c_str());
     marker_id = marker_id_asked;
-    moveToGoal(all_markers[marker_id_asked].x_pose, all_markers[marker_id_asked].y_pose,
-      all_markers[marker_id_asked].x_rotation, all_markers[marker_id_asked].y_rotation,
-      all_markers[marker_id_asked].z_rotation, all_markers[marker_id_asked].w_rotation);
+    moveToGoal(all_markers[marker_id_asked].vetor_orientacao, all_markers[marker_id_asked].affine3f_pose);
   }
 
   else ROS_INFO("[%s] is not a valid marker", msg->data.c_str());
@@ -156,8 +158,8 @@ void listenKeyboardCallback(const std_msgs::String::ConstPtr& msg){
  * @Params x and y position
  * @Return boolean if the robot reached or not the position
  */
-bool moveToGoal(double xGoal, double yGoal, double x_r, double y_r, double z_r, double w_r){
-  //define a client for to send goal requests to the move_base server through a SimpleActionClient
+bool moveToGoal(Eigen::Quaternionf vetor_orientacao, Eigen::Affine3f affine3f_pose){
+  //define a client for to send goal requests matrix4fto the move_base server through a SimpleActionClient
   MoveBaseClient ac("move_base", true);
 
   while(!ac.waitForServer(ros::Duration(5.0))){    //wait for the action server to come up
@@ -170,13 +172,13 @@ bool moveToGoal(double xGoal, double yGoal, double x_r, double y_r, double z_r, 
 
   /* moving towards the goal*/
 
-  goal.target_pose.pose.position.x =  xGoal;
-  goal.target_pose.pose.position.y =  yGoal;
+  goal.target_pose.pose.position.x =  affine3f_pose(0,3);
+  goal.target_pose.pose.position.y =  affine3f_pose(1,3);
   goal.target_pose.pose.position.z =  0.0;
-  goal.target_pose.pose.orientation.x = x_r;
-  goal.target_pose.pose.orientation.y = y_r;
-  goal.target_pose.pose.orientation.z = z_r;
-  goal.target_pose.pose.orientation.w = w_r;
+  goal.target_pose.pose.orientation.x = 0;
+  goal.target_pose.pose.orientation.y = 0;
+  goal.target_pose.pose.orientation.z = 0;
+  goal.target_pose.pose.orientation.w = 1;
 
   ROS_INFO("Sending goal location ...");
   ac.sendGoal(goal);
@@ -213,7 +215,26 @@ void loadMarkers(string aruco_poses_file){
     all_markers[id].y_rotation = y_r;
     all_markers[id].z_rotation = z_r;
     all_markers[id].w_rotation = w_r;
-  }
+
+    Eigen::Vector3f v(x,y,z); 
+    Eigen::Quaternionf q(w_r, x_r, y_r, z_r); 
+
+    all_markers[id].vetor_pose = v;
+    all_markers[id].vetor_orientacao = q;
+   
+    Eigen::Matrix3f R = q.normalized().toRotationMatrix();   // convert a quaternion to a 3x3 rotation matrix:
+
+    Eigen::Matrix4f p;
+    p.setIdentity();   // Set to Identity 
+    p.block<3,3>(0,0) = R; 
+    p.block<3,1>(0,3) = v;
+
+    Eigen::Affine3f aruco_pose;
+    aruco_pose.matrix() = p;
+
+    all_markers[id].affine3f_pose = newPoseOffset(aruco_pose, aruco_close_distance);
+
+    }
 }
 
 /**
@@ -225,8 +246,8 @@ void publishArucoTF(){
   for(int j = 1; j < 255; j++){
     if(all_markers[j].id == 0) continue; //if marker not found continue 
     //set the xyz and rotation pose
-    transform.setOrigin(tf::Vector3(all_markers[j].x_pose, all_markers[j].y_pose, all_markers[j].z_pose));
-    transform.setRotation(tf::Quaternion(0,0,0,1));
+    transform.setOrigin(tf::Vector3(all_markers[j].affine3f_pose(0,3), all_markers[j].affine3f_pose(1,3), all_markers[j].affine3f_pose(2,3)));
+    transform.setRotation(tf::Quaternion(all_markers[j].w_rotation, all_markers[j].x_rotation ,all_markers[j].y_rotation, all_markers[j].z_rotation));
     string aruco_tf = "aruco" + to_string(j); //set aruco name 
     //broadcasting to tf related to odom 
     br->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", aruco_tf));

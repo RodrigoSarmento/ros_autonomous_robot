@@ -47,7 +47,7 @@ struct markerFound{
 };
 
 MarkerFinder marker_finder; //markerfinder
-float aruco_marker_size, aruco_max_distance, aruco_close_distance;
+float aruco_marker_size, aruco_max_distance;
 Eigen::Affine3f trans_camera_pose; //turtlebot pose
 markerFound all_markers[255]; //list of marker struct
 string aruco_poses_file;
@@ -71,7 +71,6 @@ int main(int argc, char** argv){
   param_loader.checkAndGetString("camera_calibration_file", camera_calibration_file);
   param_loader.checkAndGetString("aruco_dic", aruco_dic);
   param_loader.checkAndGetString("rgb_topic", rgb_topic);
-  param_loader.checkAndGetFloat("aruco_close_distance", aruco_close_distance);
   param_loader.checkAndGetString("aruco_poses_file", aruco_poses_file);
   param_loader.checkAndGetFloat("aruco_marker_size", aruco_marker_size);
   param_loader.checkAndGetFloat("aruco_max_distance", aruco_max_distance);
@@ -110,15 +109,15 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
  */
 void rosMarkerFinder(cv::Mat rgb){
   
-  marker_finder.detectMarkersPointPoses(rgb, trans_camera_pose,aruco_max_distance, aruco_close_distance);   //Detect and get pose of all aruco markers
+  marker_finder.detectMarkersPoses(rgb, trans_camera_pose, aruco_max_distance);   //Detect and get pose of all aruco markers
 
   for (size_t j = 0; j < marker_finder.markers_.size(); j++){
     id = marker_finder.markers_[j].id;
     all_markers[id].id = id;     //save all markers in a vetor 
-    all_markers[id].x_pose = marker_finder.marker_point_poses_[j](0,3); //save marker position 
-    all_markers[id].y_pose = marker_finder.marker_point_poses_[j](1,3);
-    all_markers[id].z_pose = marker_finder.marker_point_poses_[j](2,3);
-    q_aruco = marker_finder.marker_point_poses_[j].rotation();
+    all_markers[id].x_pose = marker_finder.marker_poses_[j](0,3); //save marker position 
+    all_markers[id].y_pose = marker_finder.marker_poses_[j](1,3);
+    all_markers[id].z_pose = marker_finder.marker_poses_[j](2,3);
+    q_aruco = marker_finder.marker_poses_[j].rotation();
     all_markers[id].x_rotation = q_aruco.x();
     all_markers[id].y_rotation = q_aruco.y();
     all_markers[id].z_rotation = q_aruco.z();
