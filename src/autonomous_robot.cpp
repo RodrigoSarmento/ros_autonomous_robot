@@ -97,7 +97,7 @@ int main(int argc, char** argv){
  }
 /**
  * Ros Listener to rgb topic
- * @Params reads a rgb message
+ * @params reads a rgb message type ImageConstPtr
  */
 void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
 
