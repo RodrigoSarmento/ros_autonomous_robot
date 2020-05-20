@@ -74,8 +74,6 @@ void initRos(int argc, char** argv, string rgb_topic);
 void loadParams(); //Load ConfigFile Params
 void publishArucoTF(); //Publish tf
 
-"  teste"
-
 int main(int argc, char** argv){    
   string camera_calibration_file, aruco_dic, rgb_topic;
 
@@ -99,7 +97,7 @@ int main(int argc, char** argv){
  }
 /**
  * Ros Listener to rgb topic
- * @Params reads a rgb message
+ * @params reads a rgb message type ImageConstPtr
  */
 void imageCallback(const sensor_msgs::ImageConstPtr& msgRGB){
 
