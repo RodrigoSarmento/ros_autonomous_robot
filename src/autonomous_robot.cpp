@@ -74,6 +74,8 @@ void initRos(int argc, char** argv, string rgb_topic);
 void loadParams(); //Load ConfigFile Params
 void publishArucoTF(); //Publish tf
 
+"  teste"
+
 int main(int argc, char** argv){    
   string camera_calibration_file, aruco_dic, rgb_topic;
 
