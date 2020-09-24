@@ -18,6 +18,7 @@ set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS
 
 
 message(STATUS ">>> src subdirectory")
+message("LIB RGBD_RTK   " ${RGBD_RTK_LIBRARIES})
 
 add_executable(random_goals random_goals.cpp)
 add_executable(marker_goal marker_goal.cpp)
@@ -26,7 +27,6 @@ add_executable(marker_finder_saver marker_finder_saver.cpp)
 add_executable(motion_estimator_ros motion_estimator_ros.cpp)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-
 
 target_link_libraries(random_goals  ${catkin_LIBRARIES} ${OpenCV_LIBS})
 target_link_libraries(marker_goal  ${catkin_LIBRARIES} ${OpenCV_LIBS})

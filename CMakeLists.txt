@@ -9,15 +9,16 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -Wall  -O3 -march=native ")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall   -O3 -march=native")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -O3 -march=native ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
-set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
-project(autonomous_robot)
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
+set(DEF_INSTALL_CMAKE_DIR CMake)
+set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
 
-## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+project(autonomous_robot)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -41,13 +42,14 @@ message(STATUS "Build directory: " ${PROJECT_BINARY_DIR})
 
 #opencv
 find_package(VTK 7.1 REQUIRED)
-find_package(OpenCV 3.3.1 )
-find_package(rgbd_rtk)
-find_package(Eigen)
+find_package(OpenCV 3.3.1 REQUIRED)
+find_package(rgbd_rtk REQUIRED)
+find_package(Eigen3 REQUIRED)
 
-message(STATUS "Rgbd_rtk version: " ${rgbd_rtk_VERSION})
+message(STATUS "rgbd_rtk version: " ${rgbd_rtk_VERSION})
 message(STATUS "OpenCV version: " ${OpenCV_VERSION})
 message(STATUS "VTK version: " ${VTK_VERSION})
+message("LIB RGBD_RTK   " ${RGBD_RTK_LIBRARIES})
 #pcl
 find_package(PCL 1.8 REQUIRED PATHS "/usr/local/share/pcl-1.8")
 message(STATUS "PCL Version " ${PCL_VERSION})
