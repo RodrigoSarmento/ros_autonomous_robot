@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 
+project(autonomous_robot)
+
 #Compile in c++ 11
 set(CMAKE_CXX_STANDARD 11)
 add_compile_options(-std=c++11)
@@ -15,10 +17,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -march=native")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GCC_COVERAGE_LINK_FLAGS}" )
+
+# Offer the user the choice of overriding the installation directories
+set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
+set(INSTALL_BIN_DIR bin CACHE PATH "Installation directory for executables")
+set(INSTALL_INCLUDE_DIR include CACHE PATH "Installation directory for header files")
 set(DEF_INSTALL_CMAKE_DIR CMake)
 set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation directory for CMake files")
-
-project(autonomous_robot)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -60,9 +65,18 @@ catkin_package(
 
 )
 
-include_directories(${OpenCV_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${rgbd_rtk_INCLUDE_DIRS})
+include_directories(${OpenCV_INCLUDE_DIRS} ${PCL_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS} ${rgbd_rtk_INCLUDE_DIRS} helpers)
 link_directories(${PCL_LIBRARY_DIRS})
+
+##### Add Libs First
+add_subdirectory(helpers) 
+set(AUTONOMOUS_ROBOT_HELPERS autonomous_robot_helpers) 
+
+#### Then add applications
 add_subdirectory(src)
+
+
+export(PACKAGE autonomous_robot)
 
 
 ## System dependencies are found with CMake's conventions
