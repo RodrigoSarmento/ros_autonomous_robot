@@ -1,0 +1,8 @@
+# Define the goal
+uint32 aruco_id  # Specify which dishwasher we want to use
+---
+# Define the result
+uint32 success_or_not
+---
+# Define a feedback message
+float32 moving_not_moving
