@@ -37,7 +37,6 @@ using namespace aruco;
 // aruco
 MarkerDetector marker_detector;
 CameraParameters camera_params;
-vector<Marker> markers;
 float aruco_marker_size, aruco_max_distance, aruco_close_distance;
 string aruco_poses_file;
 cv::Mat rgb;
@@ -226,6 +225,7 @@ void initRos(int argc, char **argv, string rgb_topic) {
 
     ros::NodeHandle n;
     ros::Subscriber sub = n.subscribe("marker_goal", 1000, listenKeyboardCallback);
+
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber rgb_sub = it.subscribe(rgb_topic, 1, imageCallback);

@@ -30,7 +30,9 @@ set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation director
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   actionlib
+  actionlib_msgs
   cv_bridge
+  genmsg
   image_transport
   message_filters
   move_base_msgs
@@ -40,10 +42,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf
   std_msgs
 )
-find_package(catkin REQUIRED genmsg actionlib_msgs)
-add_action_files(DIRECTORY helpers/action FILES Goal.action)
-generate_messages(DEPENDENCIES actionlib_msgs)
-
 
 ##ros_autonomous_robot
 message(STATUS "Project source directory: " ${PROJECT_SOURCE_DIR})

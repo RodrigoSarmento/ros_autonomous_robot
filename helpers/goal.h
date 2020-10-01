@@ -9,9 +9,16 @@
 #include <ros/ros.h>
 
 class Goal {
-
 public:
-    Goal() {}
+    /**
+     * Constructor
+     */
+    Goal() {
+        char *argv[] = {"myprogram", NULL};
+        int x = 1;
+        ros::init(x, argv, "goal_node"); // Initializing node
+        ros::spinOnce();
+    }
     /**
      * Sends a 2d goal
      * @param x positions @param y position

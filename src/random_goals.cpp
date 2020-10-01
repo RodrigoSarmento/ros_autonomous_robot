@@ -7,6 +7,7 @@
 
 // ROS
 #include <actionlib/client/simple_action_client.h>
+#include <goal.h>
 #include <move_base_msgs/MoveBaseAction.h>
 #include <ros/ros.h>
 
@@ -31,7 +32,7 @@ struct attempts { // Structure to save the number of attempts
 };
 
 bool moveToGoal(double x, double y, double r_x, double r_y, double r_z, double r_w);
-void randomlyGoals();
+void randomlyGoals(Goal goal);
 void loadWaypoints(string waypoints_file);
 
 // Variable declarations
@@ -45,6 +46,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage : %s <waypoints file>\n", argv[0]); // Need to give the waypoints
         exit(0);
     }
+    Goal goal;
 
     // Reading waypoints
     string waypoints_file;
@@ -52,56 +54,16 @@ int main(int argc, char **argv) {
     loadWaypoints(waypoints_file);
 
     // Main loop
-    randomlyGoals();
+    randomlyGoals(goal);
     ros::spinOnce();
 
     return 0;
 }
 
 /**
- * Send a goal to the robot, needs x and y, can pass rotation x y z w
- * @param x @param z @param r_x optional @param r_y optional @param r_z optional @param r_w optional
- * @return boolean if the robot successes or failed in reach position
- */
-bool moveToGoal(double x, double y, double r_x = 0.0, double r_y = 0.0, double r_z = 0.0,
-                double r_w = 1.0) {
-    // Fefine a client for to send goal requests to the move_base server through a
-    // SimpleActionClient
-    actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
-
-    // Wait for the action server to come up
-    while (!ac.waitForServer(ros::Duration(5.0))) {
-        ROS_INFO("Waiting for the move_base action server to come up");
-    }
-
-    move_base_msgs::MoveBaseGoal goal;
-
-    // Setting up the frame parameters
-    goal.target_pose.header.frame_id = "map";
-    goal.target_pose.header.stamp = ros::Time::now();
-
-    // Moving towards the goal
-    goal.target_pose.pose.position.x = x;
-    goal.target_pose.pose.position.y = y;
-    goal.target_pose.pose.position.z = 0.0;
-    goal.target_pose.pose.orientation.x = r_x;
-    goal.target_pose.pose.orientation.y = r_y;
-    goal.target_pose.pose.orientation.z = r_z;
-    goal.target_pose.pose.orientation.w = r_w;
-
-    ROS_INFO("Sending goal location ...");
-    ac.sendGoal(goal);
-
-    ac.waitForResult();
-
-    // If the robot reaches the position, returns true, otherwise returns false
-    return ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED;
-}
-
-/**
  * choose a random known position and send a goal
  */
-void randomlyGoals() {
+void randomlyGoals(Goal goal) {
     srand(time(NULL));
 
     int i = 0;
@@ -117,7 +79,8 @@ void randomlyGoals() {
                attempts.success, attempts.failed);
         printf("Trying to go to waypoint %i: x = %f y = %f\n", i, waypoints[i].x, waypoints[i].y);
 
-        if (moveToGoal(waypoints[i].x, waypoints[i].y) == true) {
+        if (goal.send2dGoal(waypoints[i].x, waypoints[i].y, Eigen::Quaterniond(1, 0, 0, 0)) ==
+            true) {
             // If the robot reaches the position update the success and attempts
             printf("Robot reached waypoint\n");
             attempts.success++;

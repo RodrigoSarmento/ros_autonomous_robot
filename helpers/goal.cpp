@@ -2,8 +2,7 @@
 
 using namespace std;
 
-bool Goal::send2dGoal(const double &x, const double &y,
-                      const Eigen::Quaterniond &orientation) {
+bool Goal::send2dGoal(const double &x, const double &y, const Eigen::Quaterniond &orientation) {
     // Define a client for to send goal requests to the move_base server
     actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> ac("move_base", true);
 
