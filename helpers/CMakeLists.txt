@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.6)
 
 message(STATUS ">>> helpers subdirectory")
 
-set(AUTONOMOUS_ROBOT_HELPERS_SRC goal.cpp)
-set(AUTONOMOUS_ROBOT_HELPERS_INCLUDES goal.h)
+set(AUTONOMOUS_ROBOT_HELPERS_SRC goal.cpp handleFiles.cpp)
+set(AUTONOMOUS_ROBOT_HELPERS_INCLUDES goal.h handleFiles.h structure.h)
 
 add_library(autonomous_robot_helpers SHARED ${AUTONOMOUS_ROBOT_HELPERS_SRC})
 target_link_libraries(autonomous_robot_helpers ${EIGEN3_LIBRARIES} ${catkin_LIBRARIES})

@@ -11,18 +11,9 @@
 #include <move_base_msgs/MoveBaseAction.h>
 #include <ros/ros.h>
 
-using namespace std;
+#include <handleFiles.h>
 
-struct waypoint { // Structure used to create a list of waypoints, n is the number of waypoints
-    int id;
-    double x;
-    double y;
-    double z;
-    double r_x;
-    double r_y;
-    double r_z;
-    double r_w;
-};
+using namespace std;
 
 struct attempts { // Structure to save the number of attempts
     int total = 0;
@@ -31,12 +22,11 @@ struct attempts { // Structure to save the number of attempts
     int numberOfWaypoints = 0;
 };
 
-bool moveToGoal(double x, double y, double r_x, double r_y, double r_z, double r_w);
-void randomlyGoals(Goal goal);
+void randomlyGoals();
 void loadWaypoints(string waypoints_file);
 
 // Variable declarations
-waypoint waypoints[200];
+Pose waypoints[200];
 attempts attempts;
 
 int main(int argc, char **argv) {
@@ -46,7 +36,6 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Usage : %s <waypoints file>\n", argv[0]); // Need to give the waypoints
         exit(0);
     }
-    Goal goal;
 
     // Reading waypoints
     string waypoints_file;
@@ -54,16 +43,17 @@ int main(int argc, char **argv) {
     loadWaypoints(waypoints_file);
 
     // Main loop
-    randomlyGoals(goal);
+    randomlyGoals();
     ros::spinOnce();
 
     return 0;
 }
 
 /**
- * choose a random known position and send a goal
+ * Choose a random known position and send a goal
  */
-void randomlyGoals(Goal goal) {
+void randomlyGoals() {
+    Goal goal;
     srand(time(NULL));
 
     int i = 0;
@@ -72,15 +62,16 @@ void randomlyGoals(Goal goal) {
     arq.open("attemps.txt");
 
     while (true) {
-        i = rand() % attempts.numberOfWaypoints; // sorting a randomly position
-        // making sure that the robot is not trying to go to where he already is
+        i = rand() % attempts.numberOfWaypoints; // Sorting a randomly position
+        // Making sure that the robot is not trying to go to where he already is
         if (i == i_last) continue;
         printf("Attempts destination: %i\nReached: %i \nFailed: %i \n\n", attempts.total,
                attempts.success, attempts.failed);
-        printf("Trying to go to waypoint %i: x = %f y = %f\n", i, waypoints[i].x, waypoints[i].y);
+        printf("Trying to go to waypoint %i: x = %f y = %f\n", i, waypoints[i].x_pose,
+               waypoints[i].y_pose);
 
-        if (goal.send2dGoal(waypoints[i].x, waypoints[i].y, Eigen::Quaterniond(1, 0, 0, 0)) ==
-            true) {
+        if (goal.send2dGoal(waypoints[i].x_pose, waypoints[i].y_pose,
+                            Eigen::Quaterniond(1, 0, 0, 0)) == true) {
             // If the robot reaches the position update the success and attempts
             printf("Robot reached waypoint\n");
             attempts.success++;
@@ -119,16 +110,17 @@ void loadWaypoints(string waypoints_file) {
     load_file >> attempts.numberOfWaypoints;
     for (int i = 0; i < attempts.numberOfWaypoints; i++) {
         load_file >> waypoints[i].id;
-        load_file >> waypoints[i].x;
-        load_file >> waypoints[i].y;
-        load_file >> waypoints[i].z;
-        load_file >> waypoints[i].r_x;
-        load_file >> waypoints[i].r_y;
-        load_file >> waypoints[i].r_z;
-        load_file >> waypoints[i].r_w;
+        load_file >> waypoints[i].x_pose;
+        load_file >> waypoints[i].y_pose;
+        load_file >> waypoints[i].z_pose;
+        load_file >> waypoints[i].x_rotation;
+        load_file >> waypoints[i].y_rotation;
+        load_file >> waypoints[i].z_rotation;
+        load_file >> waypoints[i].w_rotation;
         printf("Waypoint number %i -> x: %f y: %f z: %f r_x: %f r_y: %f r_z: %f r_w: %f\n",
-               waypoints[i].id, waypoints[i].x, waypoints[i].y, waypoints[i].z, waypoints[i].r_x,
-               waypoints[i].r_y, waypoints[i].r_z, waypoints[i].r_w);
+               waypoints[i].id, waypoints[i].x_pose, waypoints[i].y_pose, waypoints[i].z_pose,
+               waypoints[i].x_rotation, waypoints[i].y_rotation, waypoints[i].z_rotation,
+               waypoints[i].w_rotation);
     }
     load_file.close();
 }

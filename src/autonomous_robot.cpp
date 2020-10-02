@@ -132,7 +132,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msgRGB) {
  * Listen to a marker number and send a goal to the robot goes to marker position
  * @Params Keeps listen to any string message sent in ROS
  */
-void listenKeyboardCallback(const std_msgs::String::ConstPtr &msg) {
+void savePosesInFile(const std_msgs::String::ConstPtr &msg) {
     loadMarkers(aruco_poses_file); // loading markers
     listen_id = msg->data.c_str();
     string::size_type sz;
@@ -224,7 +224,7 @@ void initRos(int argc, char **argv, string rgb_topic) {
     ros::start();
 
     ros::NodeHandle n;
-    ros::Subscriber sub = n.subscribe("marker_goal", 1000, listenKeyboardCallback);
+    ros::Subscriber sub = n.subscribe("marker_goal", 1000, savePosesInFile);
 
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);

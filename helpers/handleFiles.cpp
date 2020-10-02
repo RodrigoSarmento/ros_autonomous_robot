@@ -2,24 +2,24 @@
 
 using namespace std;
 
-void HandleFiles::savePoses(Pose poses[], string aruco_poses_file) {
+void HandleFiles::savePoses(Pose poses[255], std::string aruco_poses_file) {
     ofstream arq;
     arq.open(aruco_poses_file);
     int cont = 0;
-    for (int k = 0; k <= 254; k++) {
+    for (int k = 0; k <= 255 - 1; k++) {
         if (poses[k].id == 0) continue;
         cont++;
     } // writing in the first line the number of poses that were found
 
     arq << cont << endl;
-    for (int k = 0; k <= 254; k++) {
+    for (int k = 0; k <= 255 - 1; k++) {
         if (poses[k].id == 0) continue;
         arq << poses[k].id << " " << poses[k].x_pose << " " << poses[k].y_pose << " "
             << poses[k].z_pose << " " << poses[k].x_rotation << " " << poses[k].y_rotation << " "
             << poses[k].z_rotation << " " << poses[k].w_rotation << endl;
     }
 }
-
+/**
 vector<Pose> HandleFiles::loadPoses(string aruco_poses_file) {
     vector<Pose> poses;
     ifstream load_file;
@@ -46,3 +46,4 @@ vector<Pose> HandleFiles::loadPoses(string aruco_poses_file) {
     }
     load_file.close();
 }
+*/

@@ -17,7 +17,7 @@ public:
      * @param markers as markerFound struct
      * @param aruco_poses_file name of the file to be saved
      */
-    void savePoses(Pose poses[], std::string aruco_poses_file);
+    void savePoses(Pose poses[255], std::string aruco_poses_file);
     /**
      * Load markers in files
      * @param aruco_poses_file name of the file to be saved
