@@ -1,7 +1,6 @@
 // C++
 #include <cstdio>
 #include <cstdlib>
-#include <fstream>
 #include <string>
 #include <vector>
 /// ROS
@@ -20,11 +19,8 @@
 #include <Eigen/Geometry>
 #include <opencv2/highgui/highgui.hpp>
 // RGBD_RTK
-#include </usr/local/include/config_loader.h>
-#include <geometry.h>
-#include <klt_tracker.h>
+#include <config_loader.h>
 #include <marker_finder.h>
-#include <motion_estimator_ransac.h>
 #include <reconstruction_visualizer.h>
 // Autonomous Robot
 #include <handleFiles.h>
@@ -38,9 +34,8 @@ MarkerFinder marker_finder;
 Eigen::Affine3f trans_camera_pose; // Turtlebot pose
 Eigen::Quaternionf q_aruco;        // Quaternion of aruco pose
 tf::TransformBroadcaster *br;      // Broadcaster for tf aruco
-Pose all_markers[255];             // List of marker struct
+vector<Pose> all_markers;          // List of marker struct
 string aruco_poses_file;
-int id = -1;
 float aruco_marker_size, aruco_max_distance;
 HandleFiles handleFiles;
 
@@ -64,10 +59,6 @@ int main(int argc, char **argv) {
     param_loader.checkAndGetFloat("aruco_max_distance", aruco_max_distance);
 
     marker_finder.markerParam(camera_calibration_file, aruco_marker_size, aruco_dic);
-
-    for (int k = 0; k < 255; k++) { // Initializing markers
-        all_markers[k].id = 0;
-    }
 
     initRos(argc, argv, rgb_topic); // Initializing ROS
 
@@ -96,30 +87,54 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msgRGB) {
 void rosMarkerFinder(cv::Mat rgb) {
     // Detect and get pose of all aruco markers
     marker_finder.detectMarkersPoses(rgb, trans_camera_pose, aruco_max_distance);
-
+    Pose aruco_pose;
+    bool marker_found = false;
     for (size_t j = 0; j < marker_finder.markers_.size(); j++) {
-        id = marker_finder.markers_[j].id;
-        all_markers[id].id = id; // Save all markers in a vector
-        all_markers[id].x_pose = marker_finder.marker_poses_[j](0, 3); // Save marker position
-        all_markers[id].y_pose = marker_finder.marker_poses_[j](1, 3);
-        all_markers[id].z_pose = marker_finder.marker_poses_[j](2, 3);
-        q_aruco = marker_finder.marker_poses_[j].rotation();
-        all_markers[id].x_rotation = q_aruco.x();
-        all_markers[id].y_rotation = q_aruco.y();
-        all_markers[id].z_rotation = q_aruco.z();
-        all_markers[id].w_rotation = q_aruco.w();
+        // If the all_markers vector is empty we add the first marker we found
+        if (all_markers.size() == 0) {
+            aruco_pose.id = marker_finder.markers_[j].id;
+            aruco_pose.x = marker_finder.marker_poses_[j](0, 3);
+            aruco_pose.y = marker_finder.marker_poses_[j](1, 3);
+            aruco_pose.z = marker_finder.marker_poses_[j](2, 3);
+            q_aruco = marker_finder.marker_poses_[j].rotation();
+            aruco_pose.x_rotation = q_aruco.x();
+            aruco_pose.y_rotation = q_aruco.y();
+            aruco_pose.z_rotation = q_aruco.z();
+            aruco_pose.w_rotation = q_aruco.w();
+            all_markers.push_back(aruco_pose);
+        } else {
+            // If it is not empty, we need to be sure that the marker we have already exists
+            for (auto pose : all_markers) {
+                if (marker_finder.markers_[j].id == pose.id) {
+                    marker_found = true;
+                    break;
+                }
+                // If exists we do nothing
+            }
+            // If do not exists we add
+            if (marker_found == false) {
+                aruco_pose.id = marker_finder.markers_[j].id;
+                aruco_pose.x = marker_finder.marker_poses_[j](0, 3);
+                aruco_pose.y = marker_finder.marker_poses_[j](1, 3);
+                aruco_pose.z = marker_finder.marker_poses_[j](2, 3);
+                q_aruco = marker_finder.marker_poses_[j].rotation();
+                aruco_pose.x_rotation = q_aruco.x();
+                aruco_pose.y_rotation = q_aruco.y();
+                aruco_pose.z_rotation = q_aruco.z();
+                aruco_pose.w_rotation = q_aruco.w();
+                all_markers.push_back(aruco_pose);
+            }
+        }
 
         marker_finder.markers_[j].draw(rgb, Scalar(0, 0, 255), 1); // Drawing markers in rgb image
         // Drawing axis on window
         CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_);
-        stringstream ss;
-        ss << "m" << id;
+
+        publishArucoTF(); // Publishing aruco pose
+
+        cv::imshow("OPENCV_WINDOW", rgb); // Showing rgb image
+        cv::waitKey(1);
     }
-
-    publishArucoTF(); // Publishing aruco pose
-
-    cv::imshow("OPENCV_WINDOW", rgb); // Showing rgb image
-    cv::waitKey(1);
 }
 
 /**
@@ -132,9 +147,8 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr &msg) {
     // Subscribing turtlebot orientation pose
     Eigen::Quaternionf q_robot((msg->pose.pose.orientation.w), msg->pose.pose.orientation.x,
                                msg->pose.pose.orientation.y, (msg->pose.pose.orientation.z));
-
-    Eigen::Matrix3f R_robot =
-        q_robot.normalized().toRotationMatrix(); // Convert a quaternion to a 3x3 rotation matrix:
+    // Convert a quaternion to a 3x3 rotation matrix:
+    Eigen::Matrix3f R_robot = q_robot.normalized().toRotationMatrix();
 
     Eigen::Matrix4f robot_pose;
     robot_pose.setIdentity(); // Set to Identity
@@ -155,12 +169,13 @@ void odomCallback(const nav_msgs::Odometry::ConstPtr &msg) {
     trans_camera_pose = camera_pose.inverse() * robot_pose.inverse();
     // Calculating Transformation camera pose in relation to 0,0 global
 
-    // ROS_INFO("Position-> x: [%f], y: [%f], z: [%f]",
-    // msg->pose.pose.position.x,msg->pose.pose.position.y, msg->pose.pose.position.z);
-    // ROS_INFO("Orientation-> x: [%f], y: [%f], z: [%f], w: [%f]", msg->pose.pose.orientation.x,
-    // msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
-    // ROS_INFO("Vel-> Linear: [%f], Angular: [%f]",
-    // msg->twist.twist.linear.x,msg->twist.twist.angular.z);
+    /* ROS_INFO("Position-> x: [%f], y: [%f], z: [%f]",
+       msg->pose.pose.position.x,msg->pose.pose.position.y, msg->pose.pose.position.z);
+       ROS_INFO("Orientation-> x: [%f], y: [%f], z: [%f], w: [%f]", msg->pose.pose.orientation.x,
+       msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w);
+       ROS_INFO("Vel-> Linear: [%f], Angular: [%f]",
+       msg->twist.twist.linear.x,msg->twist.twist.angular.z);
+    */
 }
 
 /**
@@ -182,14 +197,13 @@ void savePosesInFile(const std_msgs::String::ConstPtr &msg) {
 void publishArucoTF() {
     br = new tf::TransformBroadcaster();
     tf::Transform transform;
-    for (int j = 1; j < 255; j++) {
-        if (all_markers[j].id == 0) continue; // If marker not found continue
-        // Set the xyz and rotation pose
-        transform.setOrigin(
-            tf::Vector3(all_markers[j].x_pose, all_markers[j].y_pose, all_markers[j].z_pose));
-        transform.setRotation(tf::Quaternion(0, 0, 0, 1));
-        string aruco_tf = "aruco" + to_string(j); // Set aruco name
-        // Broadcasting to tf related to odom
+    for (auto pose : all_markers) {
+        // set the xyz and rotation pose
+        transform.setOrigin(tf::Vector3(pose.x, pose.y, pose.z));
+        transform.setRotation(
+            tf::Quaternion(pose.w_rotation, pose.x_rotation, pose.y_rotation, pose.z_rotation));
+        string aruco_tf = "aruco" + to_string(pose.id); // set aruco name
+        // broadcasting to tf related to odom
         br->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", aruco_tf));
     }
 }

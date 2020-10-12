@@ -17,13 +17,13 @@ public:
      * @param markers as markerFound struct
      * @param aruco_poses_file name of the file to be saved
      */
-    void savePoses(Pose poses[255], std::string aruco_poses_file);
+    void savePoses(std::vector<Pose> poses, std::string aruco_poses_file);
     /**
      * Load markers in files
      * @param aruco_poses_file name of the file to be saved
      * @return MarkerFound structure
     */
-    std::vector<Pose> loadPoses(std::string aruco_poses_file);
+    std::vector<Pose> loadPoses(std::string aruco_poses_file, float aruco_close_distance);
 };
 
 #endif
