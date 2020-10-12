@@ -43,6 +43,7 @@ cv::Mat rgb;
 tf::TransformBroadcaster *br;
 Eigen::Affine3f I = Eigen::Affine3f::Identity();
 Goal goal;
+HandleFiles handleFiles;
 
 string listen_id;
 int marker_id_asked;
@@ -116,7 +117,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msgRGB) {
  * @Params Keeps listen to any string message sent in ROS
  */
 void sendGoal(const std_msgs::String::ConstPtr &msg) {
-    handleFiles.loadPoses(aruco_poses_file, aruco_off); // loading markers
+    handleFiles.loadPoses(aruco_poses_file, aruco_offset_distance); // loading markers
     listen_id = msg->data.c_str();
     string::size_type sz;
 
@@ -145,13 +146,12 @@ void publishArucoTF() {
     br = new tf::TransformBroadcaster();
     tf::Transform transform;
     for (Pose pose : all_markers) {
-        if (pose.id == 0) continue; // if marker not found continue
         // set the xyz and rotation pose
         transform.setOrigin(
             tf::Vector3(pose.affine_pose(0, 3), pose.affine_pose(1, 3), pose.affine_pose(2, 3)));
         transform.setRotation(
             tf::Quaternion(pose.w_rotation, pose.x_rotation, pose.y_rotation, pose.z_rotation));
-        string aruco_tf = "aruco" + to_string(j); // set aruco name
+        string aruco_tf = "aruco" + to_string(pose.id); // set aruco name
         // broadcasting to tf related to odom
         br->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", aruco_tf));
     }

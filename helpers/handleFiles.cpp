@@ -1,5 +1,6 @@
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
+#include <geometry.h>
 #include <handleFiles.h>
 
 using namespace std;
