@@ -48,14 +48,13 @@ message(STATUS "Project source directory: " ${PROJECT_SOURCE_DIR})
 message(STATUS "Build directory: " ${PROJECT_BINARY_DIR})
 
 #opencv
-find_package(VTK 7.1 REQUIRED)
 find_package(OpenCV 3.3.1 REQUIRED)
 find_package(rgbd_rtk REQUIRED)
 find_package(Eigen3 REQUIRED)
 
+
 message(STATUS "rgbd_rtk version: " ${rgbd_rtk_VERSION})
 message(STATUS "OpenCV version: " ${OpenCV_VERSION})
-message(STATUS "VTK version: " ${VTK_VERSION})
 message("LIB RGBD_RTK   " ${RGBD_RTK_LIBRARIES})
 #pcl
 find_package(PCL 1.8 REQUIRED PATHS "/usr/local/share/pcl-1.8")
