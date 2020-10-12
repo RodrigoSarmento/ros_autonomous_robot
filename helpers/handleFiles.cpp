@@ -9,7 +9,7 @@ void HandleFiles::savePoses(vector<Pose> poses, std::string aruco_poses_file) {
     ofstream arq;
     arq.open(aruco_poses_file);
 
-    for (Pose pose : poses) {
+    for (auto pose : poses) {
         arq << pose.id << " " << pose.x << " " << pose.y << " " << pose.z << " " << pose.x_rotation
             << " " << pose.y_rotation << " " << pose.z_rotation << " " << pose.w_rotation << endl;
     }
@@ -40,7 +40,7 @@ vector<Pose> HandleFiles::loadPoses(string aruco_poses_file, float aruco_close_d
                poses[i].id, poses[i].x, poses[i].y, poses[i].z, poses[i].x_rotation,
                poses[i].y_rotation, poses[i].z_rotation, poses[i].w_rotation);
 
-        Eigen::Vector3f v(pose.x, pose.y, pose.z);
+        /*Eigen::Vector3f v(pose.x, pose.y, pose.z);
         Eigen::Quaternionf q(pose.w_rotation, pose.x_rotation, pose.y_rotation, pose.z_rotation);
 
         pose.vector_pose = v;
@@ -58,6 +58,7 @@ vector<Pose> HandleFiles::loadPoses(string aruco_poses_file, float aruco_close_d
 
         pose.affine_pose = newPoseOffset(aruco_pose, aruco_close_distance);
         poses.push_back(pose);
+        */
     }
     load_file.close();
     return poses;

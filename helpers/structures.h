@@ -11,8 +11,5 @@ struct Pose {
     float y_rotation;
     float z_rotation;
     float w_rotation;
-    Eigen::Vector3f vector_pose;
-    Eigen::Quaternionf quaternion_orientation;
-    Eigen::Affine3f affine_pose;
 };
 #endif

@@ -34,23 +34,20 @@ using namespace std;
 using namespace cv;
 using namespace aruco;
 
-// aruco
-MarkerDetector marker_detector;
-CameraParameters camera_params;
-float aruco_marker_size, aruco_max_distance, aruco_offset_distance;
-string aruco_poses_file;
-cv::Mat rgb;
+// ROS Variables
+typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 tf::TransformBroadcaster *br;
-Eigen::Affine3f I = Eigen::Affine3f::Identity();
+
+MarkerDetector marker_detector;
+MarkerFinder marker_finder;
+
+float aruco_max_distance, aruco_offset_distance;
+string aruco_poses_file;
+vector<Pose> all_markers;
+cv::Mat rgb;
+
 Goal goal;
 HandleFiles handleFiles;
-
-string listen_id;
-int marker_id_asked;
-int marker_id = 0;
-vector<Pose> all_markers;
-MarkerFinder marker_finder;
-typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
 void imageCallback(const sensor_msgs::ImageConstPtr &msg);
 // void markerGetCloser(int marker_id);
@@ -63,6 +60,7 @@ void publishArucoTF();
 
 int main(int argc, char **argv) {
     string camera_calibration_file, aruco_dic, rgb_topic;
+    float aruco_marker_size;
 
     // Loading config variables
     ConfigLoader param_loader("../../../src/ros_autonomous_robot/config_files/ConfigFile.yaml");
@@ -97,16 +95,7 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msgRGB) {
     publishArucoTF();
 
     // Detect and get pose of all aruco markers
-    marker_finder.detectMarkersPoses(rgb, I, aruco_max_distance);
-
-    for (size_t j = 0; j < marker_finder.markers_.size(); j++) {
-        if (marker_finder.markers_[j].id != marker_id) continue;
-
-        marker_finder.markers_[j].draw(rgb, Scalar(0, 0, 255), 1); // drawing markers in rgb image
-        CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_);
-        stringstream ss;
-        ss << "m" << marker_finder.markers_[j].id;
-    }
+    marker_finder.detectMarkersPoses(rgb, Eigen::Affine3f::Identity(), aruco_max_distance);
 
     cv::imshow("OPENCV_WINDOW", rgb); // showing rgb image
     cv::waitKey(1);
@@ -117,6 +106,9 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msgRGB) {
  * @Params Keeps listen to any string message sent in ROS
  */
 void sendGoal(const std_msgs::String::ConstPtr &msg) {
+    string listen_id;
+    int marker_id_asked;
+
     handleFiles.loadPoses(aruco_poses_file, aruco_offset_distance); // loading markers
     listen_id = msg->data.c_str();
     string::size_type sz;
@@ -126,13 +118,11 @@ void sendGoal(const std_msgs::String::ConstPtr &msg) {
     } catch (std::invalid_argument &e) {
         cout << listen_id << " is not a number\n" << endl;
     }
-    for (Pose pose : all_markers) {
+    for (auto pose : all_markers) {
         // validing a marker(a marker is valid if it was detected in any frame)
         if (pose.id == marker_id_asked) {
             ROS_INFO("[%s] is a valid marker", msg->data.c_str());
-            marker_id = marker_id_asked;
-            goal.send2dGoal(pose.affine_pose(0, 3), pose.affine_pose(1, 3),
-                            Eigen::Quaterniond(1, 0, 0, 0));
+            goal.send2dGoal(pose.x, pose.y, Eigen::Quaterniond(1, 0, 0, 0));
 
         } else
             ROS_INFO("[%s] is not a valid marker", msg->data.c_str());
@@ -145,10 +135,9 @@ void sendGoal(const std_msgs::String::ConstPtr &msg) {
 void publishArucoTF() {
     br = new tf::TransformBroadcaster();
     tf::Transform transform;
-    for (Pose pose : all_markers) {
+    for (auto pose : all_markers) {
         // set the xyz and rotation pose
-        transform.setOrigin(
-            tf::Vector3(pose.affine_pose(0, 3), pose.affine_pose(1, 3), pose.affine_pose(2, 3)));
+        transform.setOrigin(tf::Vector3(pose.x, pose.y, pose.z));
         transform.setRotation(
             tf::Quaternion(pose.w_rotation, pose.x_rotation, pose.y_rotation, pose.z_rotation));
         string aruco_tf = "aruco" + to_string(pose.id); // set aruco name

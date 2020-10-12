@@ -36,7 +36,6 @@ Eigen::Quaternionf q_aruco;        // Quaternion of aruco pose
 tf::TransformBroadcaster *br;      // Broadcaster for tf aruco
 vector<Pose> all_markers;          // List of marker struct
 string aruco_poses_file;
-int id = -1;
 float aruco_marker_size, aruco_max_distance;
 HandleFiles handleFiles;
 
@@ -86,40 +85,56 @@ void imageCallback(const sensor_msgs::ImageConstPtr &msgRGB) {
  * @param cv::Mat image
  */
 void rosMarkerFinder(cv::Mat rgb) {
-    printf("89\n");
     // Detect and get pose of all aruco markers
     marker_finder.detectMarkersPoses(rgb, trans_camera_pose, aruco_max_distance);
     Pose aruco_pose;
-    printf("93\n");
-
+    bool marker_found = false;
     for (size_t j = 0; j < marker_finder.markers_.size(); j++) {
-        printf("96\n");
-        id = marker_finder.markers_[j].id;
-        aruco_pose.id = id;                                  // Save all markers in a vector
-        aruco_pose.x = marker_finder.marker_poses_[j](0, 3); // Save marker position
-        aruco_pose.y = marker_finder.marker_poses_[j](1, 3);
-        aruco_pose.z = marker_finder.marker_poses_[j](2, 3);
-        printf("101\n");
-        q_aruco = marker_finder.marker_poses_[j].rotation();
-        aruco_pose.x_rotation = q_aruco.x();
-        aruco_pose.y_rotation = q_aruco.y();
-        aruco_pose.z_rotation = q_aruco.z();
-        aruco_pose.w_rotation = q_aruco.w();
-        printf("106\n");
-        all_markers.push_back(aruco_pose);
-        printf("109\n");
+        // If the all_markers vector is empty we add the first marker we found
+        if (all_markers.size() == 0) {
+            aruco_pose.id = marker_finder.markers_[j].id;
+            aruco_pose.x = marker_finder.marker_poses_[j](0, 3);
+            aruco_pose.y = marker_finder.marker_poses_[j](1, 3);
+            aruco_pose.z = marker_finder.marker_poses_[j](2, 3);
+            q_aruco = marker_finder.marker_poses_[j].rotation();
+            aruco_pose.x_rotation = q_aruco.x();
+            aruco_pose.y_rotation = q_aruco.y();
+            aruco_pose.z_rotation = q_aruco.z();
+            aruco_pose.w_rotation = q_aruco.w();
+            all_markers.push_back(aruco_pose);
+        } else {
+            // If it is not empty, we need to be sure that the marker we have already exists
+            for (auto pose : all_markers) {
+                if (marker_finder.markers_[j].id == pose.id) {
+                    marker_found = true;
+                    break;
+                }
+                // If exists we do nothing
+            }
+            // If do not exists we add
+            if (marker_found == false) {
+                aruco_pose.id = marker_finder.markers_[j].id;
+                aruco_pose.x = marker_finder.marker_poses_[j](0, 3);
+                aruco_pose.y = marker_finder.marker_poses_[j](1, 3);
+                aruco_pose.z = marker_finder.marker_poses_[j](2, 3);
+                q_aruco = marker_finder.marker_poses_[j].rotation();
+                aruco_pose.x_rotation = q_aruco.x();
+                aruco_pose.y_rotation = q_aruco.y();
+                aruco_pose.z_rotation = q_aruco.z();
+                aruco_pose.w_rotation = q_aruco.w();
+                all_markers.push_back(aruco_pose);
+            }
+        }
 
         marker_finder.markers_[j].draw(rgb, Scalar(0, 0, 255), 1); // Drawing markers in rgb image
         // Drawing axis on window
         CvDrawingUtils::draw3dAxis(rgb, marker_finder.markers_[j], marker_finder.camera_params_);
-        stringstream ss;
-        ss << "m" << id;
+
+        publishArucoTF(); // Publishing aruco pose
+
+        cv::imshow("OPENCV_WINDOW", rgb); // Showing rgb image
+        cv::waitKey(1);
     }
-
-    publishArucoTF(); // Publishing aruco pose
-
-    cv::imshow("OPENCV_WINDOW", rgb); // Showing rgb image
-    cv::waitKey(1);
 }
 
 /**
@@ -182,13 +197,13 @@ void savePosesInFile(const std_msgs::String::ConstPtr &msg) {
 void publishArucoTF() {
     br = new tf::TransformBroadcaster();
     tf::Transform transform;
-    for (int j = 1; j < 255; j++) {
-        if (all_markers[j].id == 0) continue; // If marker not found continue
-        // Set the xyz and rotation pose
-        transform.setOrigin(tf::Vector3(all_markers[j].x, all_markers[j].y, all_markers[j].z));
-        transform.setRotation(tf::Quaternion(0, 0, 0, 1));
-        string aruco_tf = "aruco" + to_string(j); // Set aruco name
-        // Broadcasting to tf related to odom
+    for (auto pose : all_markers) {
+        // set the xyz and rotation pose
+        transform.setOrigin(tf::Vector3(pose.x, pose.y, pose.z));
+        transform.setRotation(
+            tf::Quaternion(pose.w_rotation, pose.x_rotation, pose.y_rotation, pose.z_rotation));
+        string aruco_tf = "aruco" + to_string(pose.id); // set aruco name
+        // broadcasting to tf related to odom
         br->sendTransform(tf::StampedTransform(transform, ros::Time::now(), "odom", aruco_tf));
     }
 }
